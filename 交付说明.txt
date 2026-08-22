@@ -1,0 +1,56 @@
+Glitch · 人类丰容计划 — 最终交付版（2026-08-22）
+====================================================
+
+一、运行哪个文件
+----------------
+主入口：frontend/index-完整版.html
+（单文件 App：启动→授权→感知→首页→挑战→宠物→我的，全部界面）
+
+二、本地跑真实数据（LLM 问题 / 实时天气）必须先起后端
+------------------------------------------------------
+1. 开一个 PowerShell 窗口，进入本目录，执行：
+
+   cd backend 所在目录（即本 zip 解压后的根目录）
+   python -m pip install -r backend/requirements.txt
+   $env:DEEPSEEK_API_KEY = "你的 Key"
+   $env:AMAP_WEB_KEY = "你的高德 Web Key"    # 可选，不配则无实时天气
+   python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
+
+2. 看到 "Uvicorn running on http://127.0.0.1:8000" 后，
+   双击打开 frontend/index-完整版.html
+   启动页右下角显示「v0.1 · 内测版 · 数据在线」= 后端已接通。
+
+3. 浏览器会弹 定位/麦克风 授权框，点「允许」（产品设计的权限流程，
+   位置只用于查一次天气，不上传存储）。
+
+三、后端不起时的表现
+--------------------
+页面自动进入静态演示模式：界面完全可用，
+但位置/天气显示默认值，问题卡显示「正在生成今天的小问题…」。
+
+四、后端接口（backend/app.py，FastAPI）
+---------------------------------------
+GET  /health              → {ok, llm_enabled, amap_enabled}
+POST /location-context    → {city, weather, temperature, wind, available}
+POST /profile-question    → {question_id, question, placeholder, signal_basis}
+POST /enrichment-task     → {task, reason, duration_minutes, profile_tag}
+POST /collect-state       → 传感器快照 → State（可选，前端目前本地推导状态）
+
+LLM: DeepSeek（环境变量 DEEPSEEK_API_KEY，10 秒超时）
+天气/逆地理: 高德（环境变量 AMAP_WEB_KEY）
+降级: LLM 失败 → 后端本地兜底池；前端 fetch 失败 → 静态演示数据
+
+五、Vercel 部署（可选）
+----------------------
+.api/index.py 是 ASGI 入口，vercel.json 无需修改；
+环境变量在 Vercel Dashboard → Settings → Environment Variables 配：
+  DEEPSEEK_API_KEY / AMAP_WEB_KEY
+前端线上 API_BASE 自动走同源 /api。
+注意：线上入口若用 index-完整版.html，需把它改名为 index.html 或调整路由。
+
+六、已知边界
+------------
+· 天气卡「湿度 / 空气质量」两行仍是静态——后端 LocationContext 模型
+  未返回这两个字段（高德 API 本身有 humidity，需后端补字段，前端已就绪可接）。
+· iOS Safari 需在用户手势内触发传感器权限（已实现：授权页按钮点击时同步发起）。
+· 宠物游戏数据（丰容点/等级/已购道具）存 localStorage，清浏览器数据会重置。

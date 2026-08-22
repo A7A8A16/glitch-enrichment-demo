@@ -1,0 +1,2617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Glitch · 人类丰容计划</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============ 设计令牌：手帐贴纸风 · 奶油纸 + 墨线 + 苔绿/丁香/蜜桃 ============ */
+:root {
+  --cream: #F7F1E5;
+  --cream-deep: #EFE7D6;
+  --paper: #FFFDF7;
+  --ink: #35322B;
+  --ink-soft: #77715F;
+  --ink-faint: #B8B1A0;
+  --moss: #94B94E;
+  --moss-deep: #6F9432;
+  --moss-mist: #E4EDCF;
+  --night: #20263F;
+  --night-deep: #161B30;
+  --lilac: #B7A5E3;
+  --lilac-deep: #8F7BC9;
+  --lilac-mist: #EAE4F7;
+  --peach: #F0BE93;
+  --peach-mist: #F9E8D8;
+  --radius-card: 22px;
+  --shadow-card: 0 3px 0 rgba(53,50,43,.08), 0 10px 24px -12px rgba(53,50,43,.18);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+html, body { height:100%; }
+
+body {
+  font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--cream-deep);
+  color: var(--ink);
+  display:flex; align-items:center; justify-content:center;
+  min-height:100vh;
+  overflow:hidden;
+}
+
+/* 纸张噪点 */
+body::after {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:99; opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.03 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ============ 手机框 ============ */
+.phone {
+  position:relative;
+  width:min(390px, 100vw);
+  height:min(844px, 100vh);
+  background:var(--cream);
+  overflow:hidden;
+  box-shadow:0 30px 80px -30px rgba(53,50,43,.45);
+  border-radius:clamp(0px, 6cqw, 44px);
+  container-type:inline-size;
+}
+@media (max-width:430px), (max-height:880px) {
+  .phone { border-radius:0; box-shadow:none; }
+}
+
+/* ============ 屏幕系统（可下滑，自适应屏幕尺寸） ============ */
+.screen {
+  position:absolute; inset:0; padding:44px 26px 24px;
+  display:flex; flex-direction:column;
+  overflow-y:auto; overscroll-behavior:contain;
+  scrollbar-width:none;
+}
+.screen::-webkit-scrollbar { display:none; }
+.screen.active { opacity:1; transform:none; pointer-events:auto; visibility:visible; }
+.screen { opacity:0; transform:translateX(36px); }
+.screen {
+  transition:opacity .45s ease, transform .45s cubic-bezier(.22,.9,.3,1.2);
+  pointer-events:none; visibility:hidden;
+}
+
+/* 逐条上浮入场 */
+.screen .rise { opacity:0; transform:translateY(18px); }
+.screen.active .rise {
+  animation:rise .6s cubic-bezier(.2,.8,.25,1) forwards;
+}
+@keyframes rise { to { opacity:1; transform:none; } }
+.screen.active .d1{animation-delay:.05s}.screen.active .d2{animation-delay:.15s}
+.screen.active .d3{animation-delay:.25s}.screen.active .d4{animation-delay:.35s}
+.screen.active .d5{animation-delay:.45s}.screen.active .d6{animation-delay:.55s}
+.screen.active .d7{animation-delay:.65s}
+.screen.exit-left { transform:translateX(-36px); }
+
+/* ============ 通用元件 ============ */
+.font-display { font-family:'ZCOOL KuaiLe','Noto Sans SC',sans-serif; font-weight:400; }
+.font-hand { font-family:'Caveat',cursive; }
+
+.btn-ink {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  width:100%; height:58px; border:none; border-radius:999px;
+  background:var(--ink); color:#FBF8F0;
+  font-size:17px; font-weight:500; letter-spacing:2px; cursor:pointer;
+  box-shadow:0 4px 0 rgba(53,50,43,.25);
+  transition:transform .15s, box-shadow .15s;
+}
+.btn-ink:active { transform:translateY(3px); box-shadow:0 1px 0 rgba(53,50,43,.25); }
+.btn-ghost {
+  display:flex; align-items:center; justify-content:center;
+  height:52px; border-radius:999px; cursor:pointer;
+  background:transparent; border:1.5px solid var(--ink-faint);
+  color:var(--ink-soft); font-size:15px; letter-spacing:2px;
+  font-family:inherit; transition:transform .15s, border-color .15s;
+}
+.btn-ghost:active { transform:scale(.97); border-color:var(--ink); color:var(--ink); }
+
+.sparkle { position:absolute; pointer-events:none; z-index:1; }
+.sparkle path { fill:currentColor; }
+.twinkle { animation:twinkle 2.6s ease-in-out infinite; }
+@keyframes twinkle {
+  0%,100% { transform:scale(.55) rotate(0deg); opacity:.35; }
+  50% { transform:scale(1) rotate(18deg); opacity:1; }
+}
+
+/* 顶部流程分段进度条（状态栏已移除，上移） */
+.flow {
+  position:absolute; top:20px; left:26px; right:26px; z-index:5;
+  display:flex; align-items:center; justify-content:center; gap:0;
+}
+.flow .seg {
+  height:4px; flex:1; max-width:64px; border-radius:99px;
+  background:rgba(53,50,43,.14); margin:0 4px; overflow:hidden;
+}
+.flow .seg::after {
+  content:''; display:block; height:100%; width:0; border-radius:99px;
+  background:var(--moss-deep); transition:width .8s ease;
+}
+.phone[data-step="2"] .seg:nth-child(-n+2)::after,
+.phone[data-step="3"] .seg:nth-child(-n+3)::after,
+.phone[data-step="4"] .seg:nth-child(-n+4)::after,
+.phone[data-step="5"] .seg:nth-child(-n+5)::after,
+.phone[data-step="6"] .seg:nth-child(-n+6)::after,
+.phone[data-step="7"] .seg:nth-child(-n+7)::after,
+.phone[data-step="8"] .seg:nth-child(-n+8)::after { width:100%; }
+.phone[data-step="3"] .flow .seg { background:rgba(237,233,220,.22); }
+.phone[data-step="3"] .seg:nth-child(-n+2)::after { background:#D8E7B8; }
+
+/* ============ ① 启动页 ============ */
+#splash { justify-content:center; align-items:center; text-align:center; }
+#splash .logo-ball {
+  width:44px; height:44px; border-radius:50%;
+  background:radial-gradient(circle at 32% 28%, #C4DB86, var(--moss) 62%, var(--moss-deep));
+  box-shadow:inset -4px -5px 0 rgba(111,148,50,.4), 0 6px 14px -6px rgba(111,148,50,.6);
+  animation:bounce 2.8s cubic-bezier(.45,0,.2,1) infinite;
+}
+@keyframes bounce {
+  0%,100% { transform:translateY(0) scaleY(1); }
+  12% { transform:translateY(-2px) scaleY(1.04); }
+  30% { transform:translateY(-22px) scaleY(.96); }
+  45% { transform:translateY(0) scaleY(1.05); }
+  52% { transform:translateY(0) scaleY(1); }
+}
+#splash .logo-text {
+  font-family:'Caveat',cursive; font-weight:700;
+  font-size:88px; line-height:1; margin-top:18px; color:var(--ink);
+}
+#splash .logo-text .dot { color:var(--moss-deep); }
+#splash .sub {
+  margin-top:14px; font-size:15px; color:var(--ink-soft); letter-spacing:6px; font-weight:300;
+}
+#splash .divider {
+  width:56px; height:1.5px; background:var(--ink-faint); margin:30px 0 18px;
+}
+#splash .tagline {
+  font-size:14px; color:var(--ink-soft); line-height:2.1; font-weight:300;
+}
+#splash .enter {
+  margin-top:46px; display:flex; flex-direction:column; align-items:center; gap:14px;
+}
+#splash .tap-hint {
+  font-size:12.5px; color:var(--ink-faint); letter-spacing:3px;
+  animation:hint 2s ease-in-out infinite;
+}
+@keyframes hint { 0%,100%{opacity:.4} 50%{opacity:1} }
+#splash .v {
+  position:absolute; bottom:34px; left:0; right:0; text-align:center;
+  font-size:11px; color:var(--ink-faint); letter-spacing:2px;
+}
+
+/* ============ ② 授权页 ============ */
+#perm .head-title { font-size:34px; line-height:1.35; }
+#perm .head-sub { margin-top:12px; font-size:14px; color:var(--ink-soft); line-height:1.9; font-weight:300; }
+.perm-list { margin-top:34px; display:flex; flex-direction:column; gap:16px; }
+.perm-card {
+  display:flex; gap:16px; align-items:flex-start;
+  background:var(--paper); border:1.5px solid var(--ink); border-radius:var(--radius-card);
+  padding:20px 20px 18px; box-shadow:var(--shadow-card);
+}
+.perm-icon {
+  flex:none; width:52px; height:52px; border-radius:16px;
+  display:flex; align-items:center; justify-content:center;
+  border:1.5px solid var(--ink);
+}
+.perm-icon.i-a { background:var(--moss-mist); }
+.perm-icon.i-b { background:var(--lilac-mist); }
+.perm-icon.i-c { background:var(--peach-mist); }
+.perm-card h3 { font-size:16.5px; font-weight:500; }
+.perm-card p { margin-top:5px; font-size:13px; color:var(--ink-soft); line-height:1.75; font-weight:300; }
+.perm-card .check {
+  margin-left:auto; flex:none; margin-top:3px;
+  width:22px; height:22px; border-radius:50%;
+  border:1.5px solid var(--ink-faint); display:flex; align-items:center; justify-content:center;
+  transition:all .4s cubic-bezier(.3,1.4,.5,1);
+}
+.perm-card.on .check { background:var(--moss); border-color:var(--moss-deep); transform:scale(1.08); }
+#perm .reassure {
+  margin-top:26px; text-align:center; font-size:12.5px; color:var(--ink-faint);
+  line-height:1.9; font-weight:300;
+}
+#perm .cta-zone { margin-top:auto; padding-top:22px; }
+
+/* ============ ③ 感知中（深色） ============ */
+#sense {
+  background:
+    radial-gradient(120% 60% at 50% -10%, #2E3554 0%, transparent 55%),
+    radial-gradient(90% 50% at 85% 110%, #26304E 0%, transparent 60%),
+    linear-gradient(180deg, var(--night) 0%, var(--night-deep) 100%);
+  color:#EDE9DC;
+  align-items:center; text-align:center;
+  transition:background .5s;
+}
+#sense .stars, #sense .stars2 { position:absolute; inset:0; pointer-events:none; }
+#sense .star { position:absolute; border-radius:50%; background:#EDE9DC; animation:twinkle 3s ease-in-out infinite; }
+#sense .sense-title { font-size:26px; color:#EDE9DC; margin-top:12px; }
+#sense .orb-zone { position:relative; flex:none; margin:44px 0 40px; width:190px; height:190px; }
+#sense .orb {
+  position:absolute; inset:32px; border-radius:50%;
+  background:radial-gradient(circle at 34% 30%, #E3F1B4, var(--moss) 55%, #5E8228 100%);
+  box-shadow:0 0 34px 6px rgba(148,185,78,.55), 0 0 90px 30px rgba(148,185,78,.22);
+  animation:breathe 3.2s ease-in-out infinite;
+}
+#sense .orb-ring {
+  position:absolute; inset:14px; border-radius:50%;
+  border:1.5px dashed rgba(216,231,184,.5);
+  animation:spin 14s linear infinite;
+}
+#sense .orb-ring.r2 { inset:-2px; border-style:solid; border-color:rgba(216,231,184,.18); animation-duration:22s; animation-direction:reverse; }
+@keyframes breathe { 0%,100%{transform:scale(1)} 50%{transform:scale(1.07)} }
+@keyframes spin { to { transform:rotate(360deg); } }
+.sense-status { width:100%; max-width:280px; display:flex; flex-direction:column; gap:15px; text-align:left; }
+.sense-item {
+  display:flex; align-items:center; gap:12px;
+  font-size:14.5px; color:#B9B4A6; letter-spacing:1px;
+  opacity:0; transform:translateY(10px);
+  transition:all .5s cubic-bezier(.2,.8,.3,1);
+}
+.sense-item.show { opacity:1; transform:none; }
+.sense-item .tick {
+  flex:none; width:22px; height:22px; border-radius:50%;
+  border:1.5px solid rgba(237,233,220,.35);
+  display:flex; align-items:center; justify-content:center;
+  transition:all .4s;
+}
+.sense-item .tick svg { opacity:0; transform:scale(.4); transition:all .35s cubic-bezier(.3,1.6,.5,1); }
+.sense-item.done { color:#EDE9DC; }
+.sense-item.done .tick { background:var(--moss); border-color:var(--moss); }
+.sense-item.done .tick svg { opacity:1; transform:scale(1); }
+.sense-item .dots { display:inline-block; width:14px; opacity:.6; }
+.sense-item .dots::after { content:'…'; animation:dots 1.2s steps(4) infinite; display:inline-block; }
+.sense-item.done .dots { opacity:0; }
+@keyframes dots { 0%{content:''} 25%{content:'·'} 50%{content:'··'} 75%{content:'···'} }
+#sense .sense-cta {
+  position:absolute; bottom:54px; left:0; right:0;
+  padding:0 26px;
+  display:flex; justify-content:center;
+  opacity:0; transform:translateY(10px); pointer-events:none;
+  transition:all .5s cubic-bezier(.2,.8,.3,1);
+}
+#sense .sense-cta.show { opacity:1; transform:none; pointer-events:auto; }
+#sense .sense-cta .btn-ink { max-width:340px; }
+
+/* ============ ④ 首页 ============ */
+#home { padding-bottom:112px; }
+.home-top { display:flex; align-items:center; justify-content:space-between; }
+.loc-chip {
+  display:inline-flex; align-items:center; gap:7px;
+  background:var(--paper); border:1.5px solid var(--ink); border-radius:999px;
+  padding:7px 14px; font-size:13px; font-weight:500;
+  box-shadow:0 2px 0 rgba(53,50,43,.12);
+}
+.loc-chip .dot { width:7px; height:7px; border-radius:50%; background:var(--moss-deep); animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(111,148,50,.4)} 60%{box-shadow:0 0 0 6px rgba(111,148,50,0)} }
+.avatar {
+  width:38px; height:38px; border-radius:50%; border:1.5px solid var(--ink);
+  background:radial-gradient(circle at 35% 30%, #C4DB86, var(--moss));
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Caveat',cursive; font-weight:700; font-size:19px; color:#fff;
+}
+.home-greet { margin-top:28px; }
+.home-greet .hi { font-size:44px; line-height:1.15; }
+.home-greet .date { margin-top:8px; font-size:13.5px; color:var(--ink-soft); letter-spacing:2px; font-weight:300; }
+.card {
+  background:var(--paper); border:1.5px solid var(--ink); border-radius:var(--radius-card);
+  box-shadow:var(--shadow-card); padding:22px;
+}
+.weather-card { margin-top:26px; display:flex; align-items:center; gap:18px; }
+.weather-art { flex:none; animation:floaty 4.5s ease-in-out infinite; }
+@keyframes floaty { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+.weather-num { font-family:'Caveat',cursive; font-weight:700; font-size:56px; line-height:1; }
+.weather-num sup { font-size:26px; }
+.weather-desc { font-size:14px; color:var(--ink-soft); margin-top:2px; }
+.weather-meta { margin-left:auto; text-align:right; display:flex; flex-direction:column; gap:9px; }
+.weather-meta .row { font-size:12px; color:var(--ink-soft); }
+.weather-meta .row b { color:var(--ink); font-weight:500; margin-left:4px; }
+.mood-card { margin-top:16px; position:relative; overflow:hidden; }
+.mood-card .q { font-size:19px; }
+.mood-card .hint { font-size:12px; color:var(--ink-faint); margin-top:4px; letter-spacing:1px; }
+.mood-row { margin-top:18px; display:flex; justify-content:space-between; gap:8px; }
+.mood {
+  flex:1; aspect-ratio:1; max-width:56px; border-radius:18px;
+  border:1.5px solid var(--ink-faint); background:var(--cream);
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  transition:all .2s cubic-bezier(.3,1.4,.5,1);
+}
+.mood:active { transform:scale(.9); }
+.mood.sel { background:var(--moss-mist); border-color:var(--moss-deep); transform:scale(1.12) rotate(-4deg); }
+.mood-note {
+  margin-top:16px; font-size:12.5px; color:var(--moss-deep); letter-spacing:1px;
+  opacity:0; transform:translateY(4px); transition:all .35s;
+}
+.mood-note.show { opacity:1; transform:none; }
+
+/* 首页 · 今天的小问题（取代原来的心情卡） */
+.home-question-card { margin-top:16px; padding:20px 18px 16px; }
+.home-question-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
+.home-question-eyebrow {
+  display:inline-flex; align-items:center; gap:6px;
+  color:var(--moss-deep); font-size:12px; letter-spacing:2px; font-weight:500;
+}
+.home-question-eyebrow svg { color:var(--moss-deep); }
+.home-question-swap {
+  border:0; background:transparent; color:var(--ink-soft);
+  font-family:inherit; font-size:11.5px; letter-spacing:1px;
+  padding:4px 8px; cursor:pointer; border-radius:999px;
+  transition:background .15s, color .15s;
+}
+.home-question-swap:active { background:var(--cream-deep); color:var(--ink); }
+.home-question-text {
+  font-family:'ZCOOL KuaiLe','Noto Sans SC',sans-serif;
+  font-size:20px; line-height:1.7; color:var(--ink); overflow-wrap:anywhere;
+}
+.home-question-text.loading,
+#challengeQuestion.loading {
+  color: var(--ink-faint);
+  font-style: italic;
+  animation: loadingPulse 1.6s ease-in-out infinite;
+}
+@keyframes loadingPulse {
+  0%, 100% { opacity: .55; }
+  50% { opacity: 1; }
+}
+.home-question-input-wrap { position:relative; margin-top:14px; }
+.home-question-input {
+  display:block; width:100%; min-height:92px; max-height:170px; resize:vertical;
+  border:1.5px solid var(--ink-faint); border-radius:16px; outline:none;
+  background:var(--cream); color:var(--ink); padding:14px 52px 14px 14px;
+  font:400 13.5px/1.75 'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+  transition:border-color .2s, box-shadow .2s;
+}
+.home-question-input::placeholder { color:var(--ink-faint); }
+.home-question-input:focus { border-color:var(--moss-deep); box-shadow:0 3px 0 var(--moss-mist); }
+.home-question-submit {
+  position:absolute; right:8px; bottom:8px;
+  width:38px; height:38px; border:1.5px solid var(--ink); border-radius:50%;
+  background:var(--moss-mist); color:var(--ink);
+  display:grid; place-items:center; cursor:pointer;
+  box-shadow:0 2px 0 rgba(53,50,43,.15);
+  transition:transform .12s, box-shadow .12s;
+}
+.home-question-submit:active { transform:translateY(2px); box-shadow:none; }
+.home-question-hint { margin-top:10px; font-size:11px; color:var(--ink-faint); letter-spacing:1px; }
+
+/* 底部导航：左下宠物 · 中间挑战 · 右下我的 */
+.tabbar {
+  position:absolute; bottom:0; left:0; right:0; z-index:10; height:86px;
+  background:rgba(255,253,247,.92); backdrop-filter:blur(10px);
+  border-top:1.5px solid var(--ink);
+  display:flex; align-items:center; justify-content:space-around;
+  padding:0 34px 14px;
+  opacity:0; transform:translateY(20px); pointer-events:none;
+  transition:all .5s cubic-bezier(.2,.8,.3,1) .15s;
+}
+.phone:has(#home.active) .tabbar,
+.phone:has(#pet.active) .tabbar,
+.phone:has(#profile.active) .tabbar { opacity:1; transform:none; pointer-events:auto; }
+.tab {
+  display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;
+  font-size:10.5px; color:var(--ink-faint); letter-spacing:1px;
+  transition:color .2s; background:none; border:none; font-family:inherit;
+}
+.tab.on { color:var(--ink); }
+.tab-fab {
+  width:58px; height:58px; margin-top:-34px; border-radius:50%;
+  border:1.5px solid var(--ink); background:radial-gradient(circle at 34% 30%, #C4DB86, var(--moss) 60%, var(--moss-deep));
+  box-shadow:0 5px 0 rgba(53,50,43,.2), 0 10px 22px -8px rgba(111,148,50,.7);
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  transition:transform .15s;
+}
+.tab-fab:active { transform:translateY(3px) scale(.97); }
+.demo-pager { display:none !important; }
+.pet-head-spacer { width:40px; flex:none; }
+
+/* ============ 我的（个人用户页） ============ */
+#profile { padding:44px 22px 112px; }
+.profile-tools { display:flex; justify-content:flex-end; gap:10px; }
+.round-tool { width:40px; height:40px; border:1.5px solid var(--ink); border-radius:50%; background:var(--paper); color:var(--ink); display:grid; place-items:center; box-shadow:0 3px 0 rgba(53,50,43,.08); cursor:pointer; }
+.profile-person { display:flex; align-items:center; gap:16px; margin-top:24px; }
+.profile-avatar { position:relative; width:84px; height:84px; flex:none; border-radius:50%; border:1.5px solid var(--ink); background:var(--moss-mist); overflow:hidden; padding:0; cursor:pointer; }
+.profile-avatar .pet-sprite { width:100%; height:100%; }
+.profile-avatar img { width:100%; height:100%; object-fit:cover; display:none; }
+.profile-avatar::after { content:'编辑'; position:absolute; left:0; right:0; bottom:0; height:21px; display:grid; place-items:center; background:rgba(53,50,43,.72); color:var(--paper); font-size:9px; letter-spacing:2px; opacity:0; transition:.2s; }
+.profile-avatar:hover::after,.profile-avatar:focus-visible::after { opacity:1; }
+.profile-info h2 { font-size:26px; }
+.profile-id { color:var(--ink-faint); font-size:12px; margin-top:7px; }
+.profile-bio { color:var(--ink-soft); font-size:12px; margin-top:13px; line-height:1.7; }
+.profile-edit-btn { margin-top:9px; border:1px solid var(--ink-faint); border-radius:999px; background:transparent; color:var(--ink-soft); padding:5px 11px; font-family:inherit; font-size:10px; cursor:pointer; }
+.profile-editor { position:absolute; inset:0; z-index:75; display:flex; align-items:flex-end; background:rgba(53,50,43,.28); opacity:0; visibility:hidden; pointer-events:none; transition:.3s; }
+.profile-editor.show { opacity:1; visibility:visible; pointer-events:auto; }
+.profile-editor-sheet { width:100%; padding:22px 22px 30px; border-top:1.5px solid var(--ink); border-radius:28px 28px 0 0; background:var(--paper); box-shadow:0 -4px 0 rgba(53,50,43,.08); transform:translateY(30px); transition:.35s cubic-bezier(.2,.8,.3,1); }
+.profile-editor.show .profile-editor-sheet { transform:none; }
+.editor-head { display:flex; align-items:center; justify-content:space-between; }
+.editor-head h3 { font-size:21px; }
+.editor-close { width:34px; height:34px; border:1.5px solid var(--ink); border-radius:50%; background:transparent; color:var(--ink); font-size:20px; cursor:pointer; }
+.avatar-editor { display:flex; align-items:center; gap:16px; margin-top:18px; }
+.avatar-preview { width:76px; height:76px; border:1.5px solid var(--ink); border-radius:50%; background:var(--moss-mist); overflow:hidden; }
+.avatar-preview img { width:100%; height:100%; object-fit:cover; display:none; }
+.avatar-preview .pet-sprite { width:100%; height:100%; }
+.avatar-actions { display:flex; flex-direction:column; gap:8px; }
+.avatar-action { min-height:34px; border:1.5px solid var(--ink-faint); border-radius:999px; background:transparent; color:var(--ink-soft); padding:0 13px; font-family:inherit; cursor:pointer; }
+.avatar-action.primary { border-color:var(--ink); background:var(--moss-mist); color:var(--ink); }
+.editor-field { display:flex; flex-direction:column; gap:7px; margin-top:18px; color:var(--ink-soft); font-size:11px; }
+.editor-field input { height:46px; border:1.5px solid var(--ink-faint); border-radius:15px; background:var(--cream); color:var(--ink); padding:0 13px; font:500 15px inherit; outline:none; }
+.editor-field input:focus { border-color:var(--moss-deep); }
+.editor-save { margin-top:20px; height:50px; }
+.profile-stats { margin-top:24px; padding:18px 10px; display:grid; grid-template-columns:repeat(4,1fr); text-align:center; }
+.profile-stat b { display:block; font:700 26px 'Caveat',cursive; }
+.profile-stat span { display:block; margin-top:3px; color:var(--ink-soft); font-size:10px; }
+.profile-section { margin-top:24px; }
+.profile-section-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:13px; }
+.profile-section-head h3 { font-size:18px; }
+.profile-section-head button { border:0; background:transparent; color:var(--ink-soft); font-family:inherit; font-size:11px; }
+.achievement-row { display:grid; grid-template-columns:repeat(4,1fr); gap:9px; }
+.achievement { text-align:center; }
+.achievement-icon { width:58px; height:58px; margin:auto; border:1.5px solid var(--ink); border-radius:50%; background:var(--moss-mist); display:grid; place-items:center; color:var(--moss-deep); }
+.achievement:nth-child(2) .achievement-icon { background:var(--peach-mist); color:#C56F6F; }
+.achievement:nth-child(3) .achievement-icon { background:var(--lilac-mist); color:var(--lilac-deep); }
+.achievement:nth-child(4) .achievement-icon { background:var(--peach-mist); color:#D8912E; }
+.achievement p { font-size:10px; margin-top:7px; }
+.achievement time { display:block; color:var(--ink-faint); font-size:8px; margin-top:2px; }
+.record-row { display:grid; grid-template-columns:repeat(4,1fr); gap:9px; }
+.record-thumb { height:76px; border:1.5px solid var(--ink); border-radius:16px; overflow:hidden; background:linear-gradient(145deg,var(--moss-mist),var(--paper)); position:relative; }
+.record-thumb::after { content:''; position:absolute; width:52px; height:52px; border-radius:50%; right:-15px; top:10px; background:rgba(148,185,78,.32); }
+.record:nth-child(2) .record-thumb { background:linear-gradient(145deg,var(--peach-mist),#F5D6A8); }
+.record:nth-child(3) .record-thumb { background:linear-gradient(160deg,#C9D9E9,var(--paper)); }
+.record:nth-child(4) .record-thumb { background:linear-gradient(145deg,#D7E6C5,var(--moss-mist)); }
+.record p { font-size:9px; line-height:1.45; margin-top:6px; }
+#settings { padding:44px 22px 30px; }
+.settings-head { display:grid; grid-template-columns:40px 1fr 40px; align-items:center; text-align:center; }
+.settings-head h2 { font-size:25px; }
+.settings-group { margin-top:28px; padding:4px 18px; }
+.settings-row { width:100%; height:76px; border:0; border-bottom:1.5px dashed var(--ink-faint); background:transparent; display:flex; align-items:center; gap:15px; color:var(--ink); font-family:inherit; text-align:left; cursor:pointer; }
+.settings-row:last-child { border-bottom:0; }
+.settings-row .setting-label { flex:1; font-size:15px; }
+.settings-row .chev { color:var(--ink-faint); font-size:25px; }
+.logout-btn { margin-top:22px; width:100%; height:58px; border:1.5px solid var(--ink); border-radius:22px; background:var(--paper); color:#C96C5B; font-family:inherit; font-size:16px; cursor:pointer; box-shadow:0 3px 0 rgba(53,50,43,.08); }
+
+/* ============ 宠物乐园 ============ */
+.pet-screen { padding:44px 20px 28px; }
+.pet-head { min-height:42px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.pet-head h2 { font-size:26px; }
+.pet-back { width:40px; height:40px; border:1.5px solid var(--ink); border-radius:50%; background:var(--paper); color:var(--ink); display:grid; place-items:center; cursor:pointer; box-shadow:0 3px 0 rgba(53,50,43,.1); }
+.pet-back:active { transform:translateY(2px); box-shadow:none; }
+.leaf-balance { display:flex; align-items:center; gap:7px; font:700 22px 'Caveat',cursive; }
+.leaf-balance svg { color:var(--moss-deep); }
+.currency-label { font-family:'Noto Sans SC',sans-serif; font-size:10px; font-weight:400; color:var(--ink-soft); margin-right:1px; }
+.pet-profile { display:flex; align-items:center; gap:10px; }
+.pet-avatar { width:50px; height:50px; border:1.5px solid var(--ink); border-radius:50%; background:var(--moss-mist); overflow:hidden; }
+.pet-avatar img { width:100%; height:100%; object-fit:cover; object-position:50% 15%; transform:scale(1.7); }
+.pet-change-btn { flex:none; height:34px; padding:0 10px; border:1.5px solid var(--ink); border-radius:999px; background:var(--moss-mist); color:var(--ink); font-family:inherit; font-size:10px; display:flex; align-items:center; gap:4px; white-space:nowrap; cursor:pointer; box-shadow:0 2px 0 rgba(53,50,43,.1); }
+.pet-change-btn:active { transform:translateY(2px); box-shadow:none; }
+.pet-name { font-size:18px; }
+.pet-level { color:var(--ink-soft); font-size:12px; margin-top:2px; }
+.pet-xp { width:110px; height:8px; background:var(--cream-deep); border:1px solid var(--ink-faint); border-radius:99px; overflow:hidden; }
+.pet-xp span { display:block; width:64%; height:100%; background:var(--moss); border-radius:inherit; transition:width .4s; }
+.pet-stage { position:relative; isolation:isolate; min-height:390px; margin-top:10px; display:flex; align-items:center; justify-content:center; }
+.pet-stage::after { content:''; position:absolute; z-index:0; bottom:5px; width:252px; height:28px; border-radius:50%; background:var(--moss-mist); border:1.5px dashed var(--moss); }
+.pet-main { position:relative; z-index:2; width:264px; max-height:345px; object-fit:contain; filter:drop-shadow(0 7px 0 rgba(53,50,43,.08)); animation:petIdle 4.3s ease-in-out infinite; transform-origin:50% 85%; }
+@keyframes petIdle { 0%,100%{transform:translateY(0) rotate(-1deg)} 50%{transform:translateY(-7px) rotate(1deg)} }
+.pet-main.action-wave,.pet-main-sprite.action-wave { animation:petWave .8s cubic-bezier(.2,.8,.3,1) 2; }
+.pet-main.action-hop,.pet-main-sprite.action-hop { animation:petHop .7s cubic-bezier(.2,.8,.3,1) 2; }
+.pet-main.action-sleep,.pet-main-sprite.action-sleep { animation:petSleep 2.2s ease-in-out infinite; }
+.pet-main-sprite.level-up { animation:levelUp 1s cubic-bezier(.2,.8,.3,1) both; }
+@keyframes levelUp { 0%{filter:brightness(1);transform:scale(.82)} 45%{filter:brightness(1.25);transform:scale(1.08)} 100%{filter:brightness(1);transform:scale(1)} }
+@keyframes petWave { 0%,100%{transform:rotate(0)} 40%{transform:rotate(-8deg) scale(1.02)} }
+@keyframes petHop { 0%,100%{transform:translateY(0)} 45%{transform:translateY(-32px) scale(.98,1.03)} }
+@keyframes petSleep { 0%,100%{transform:translateY(12px) rotate(5deg) scale(.96)} 50%{transform:translateY(16px) rotate(5deg) scale(.98,.94)} }
+.pet-talk { position:absolute; z-index:3; top:54px; right:4px; max-width:136px; padding:10px 13px; border:1.5px solid var(--ink); border-radius:18px 18px 6px 18px; background:var(--paper); font-size:12px; line-height:1.55; box-shadow:0 3px 0 rgba(53,50,43,.08); opacity:0; transform:translateY(5px); transition:.3s; }
+.pet-talk.show { opacity:1; transform:none; }
+.pet-actions { position:absolute; left:0; top:104px; z-index:4; display:flex; flex-direction:column; gap:12px; }
+.pet-rail-btn { width:62px; height:68px; border:1.5px solid var(--ink); border-radius:20px; background:var(--paper); color:var(--ink); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; font-size:11px; cursor:pointer; box-shadow:0 3px 0 rgba(53,50,43,.08); }
+.pet-rail-btn:active { transform:translateY(2px); box-shadow:none; }
+.daily-card { margin-top:18px; padding:16px 16px; display:flex; align-items:center; gap:11px; }
+.daily-copy { flex:1; }
+.daily-title { font-size:16px; }
+.daily-meta { display:flex; justify-content:space-between; margin:6px 0 8px; color:var(--ink-soft); font-size:11px; }
+.reward-line { color:var(--moss-deep); font-size:9px; margin-top:6px; white-space:nowrap; }
+.mini-progress { height:8px; border-radius:99px; background:var(--cream-deep); overflow:hidden; border:1px solid var(--ink-faint); }
+.mini-progress span { display:block; height:100%; width:67%; background:var(--moss); }
+.gift-sticker { flex:none; width:48px; height:48px; border-radius:16px; background:var(--peach-mist); border:1.5px solid var(--ink); display:grid; place-items:center; cursor:pointer; color:var(--ink); }
+.gift-sticker.claimed { opacity:.5; pointer-events:none; }
+.gift-sticker.locked { opacity:.35; pointer-events:none; }
+.extra-actions { flex:none; display:flex; flex-direction:column; gap:7px; align-items:center; }
+.enrich-go { height:31px; min-width:58px; border:1.5px solid var(--ink); border-radius:999px; background:var(--moss-mist); color:var(--ink); font-family:inherit; font-size:10px; cursor:pointer; }
+.enrich-go:active { transform:translateY(2px); }
+.test-panel { position:absolute; z-index:65; left:20px; right:20px; bottom:86px; padding:14px 16px; opacity:0; visibility:hidden; pointer-events:none; transform:translateY(18px); transition:.3s; }
+.test-panel.show { opacity:1; visibility:visible; pointer-events:auto; transform:none; }
+.test-secret { position:absolute; z-index:66; top:56px; left:50%; width:12px; height:12px; transform:translateX(-50%); border:0; border-radius:50%; background:var(--ink); opacity:.06; cursor:pointer; }
+.test-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:11px; }
+.test-head strong { font-size:15px; font-weight:500; }
+.test-badge { padding:3px 9px; border-radius:999px; background:var(--lilac-mist); color:var(--lilac-deep); font-size:10px; }
+.test-controls { display:grid; grid-template-columns:1fr 1.25fr auto; gap:8px; align-items:end; }
+.test-field { display:flex; flex-direction:column; gap:5px; color:var(--ink-soft); font-size:10px; }
+.test-field select,.test-field input { width:100%; height:36px; border:1.5px solid var(--ink-faint); border-radius:12px; background:var(--cream); color:var(--ink); padding:0 9px; font-family:inherit; outline:none; }
+.test-field input:focus,.test-field select:focus { border-color:var(--moss-deep); }
+.test-apply { height:36px; padding:0 13px; border:1.5px solid var(--ink); border-radius:999px; background:var(--ink); color:var(--paper); font-family:inherit; cursor:pointer; box-shadow:0 3px 0 rgba(53,50,43,.2); }
+.test-apply:active { transform:translateY(2px); box-shadow:none; }
+.category-tabs { display:flex; gap:8px; margin:18px 0 16px; overflow-x:auto; scrollbar-width:none; }
+.category-tab { border:1.5px solid var(--ink-faint); background:transparent; color:var(--ink-soft); border-radius:999px; padding:8px 14px; white-space:nowrap; font-family:inherit; cursor:pointer; }
+.category-tab.on { background:var(--moss-mist); color:var(--ink); border-color:var(--ink); }
+.shop-grid,.action-grid,.feed-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; padding-bottom:20px; }
+.shop-item,.action-item,.feed-item { min-height:154px; padding:15px 12px; text-align:center; border:1.5px solid var(--ink); border-radius:22px; background:var(--paper); box-shadow:0 3px 0 rgba(53,50,43,.08); cursor:pointer; transition:.18s; }
+.shop-item:active,.action-item:active,.feed-item:active { transform:translateY(2px); box-shadow:none; }
+.item-art { height:76px; display:grid; place-items:center; color:var(--moss-deep); }
+.item-art svg { width:58px; height:58px; }
+.item-name { font-size:14px; font-weight:500; }
+.item-price { margin-top:5px; color:var(--moss-deep); font:700 13px 'Noto Sans SC',sans-serif; }
+.feed-item .item-price { font-size:10px; }
+.action-item { min-height:142px; }
+.action-item.active { background:var(--moss-mist); }
+.action-stage { min-height:230px; display:grid; place-items:center; position:relative; }
+.action-stage .pet-main { width:184px; max-height:210px; }
+.action-note { text-align:center; color:var(--ink-soft); font-size:12px; margin:-5px 0 14px; }
+.feed-stage { min-height:260px; display:grid; place-items:center; position:relative; }
+.feed-stage .pet-main { width:205px; max-height:240px; }
+.feed-heart { position:absolute; top:28px; right:64px; color:var(--peach); animation:twinkle 2.6s infinite; }
+.feed-title { font-size:18px; margin:4px 0 12px; }
+.feed-item { min-height:132px; }
+.feed-item .item-art { height:58px; }
+.feed-item .item-art svg { width:48px; height:48px; }
+.feed-item.soldout { opacity:.48; pointer-events:none; }
+.toast { position:absolute; z-index:80; left:50%; bottom:96px; transform:translate(-50%,12px); border:1.5px solid var(--ink); border-radius:999px; background:var(--ink); color:#FBF8F0; padding:10px 18px; font-size:12px; opacity:0; pointer-events:none; transition:.3s; white-space:nowrap; }
+.toast.show { opacity:1; transform:translate(-50%,0); }
+.pet-sprite { background-repeat:no-repeat; background-size:contain; background-position:center; }
+.pet-avatar .pet-sprite { display:block; width:100%; height:100%; }
+.pet-stage .pet-sprite.pet-main-sprite { position:relative; z-index:2; width:318px; height:380px; background-position:center bottom; animation:petIdle 4.3s ease-in-out infinite; transform-origin:50% 92%; }
+.action-stage .pet-main-sprite,.feed-stage .pet-main-sprite { width:205px; height:235px; animation:petIdle 4.3s ease-in-out infinite; }
+.pet-main.is-hidden { display:none; }
+.pet-main-sprite.is-hidden { display:none; }
+.change-intro { margin-top:12px; color:var(--ink-soft); font-size:12px; line-height:1.7; }
+.pet-family-tabs { display:flex; gap:8px; margin:16px 0 14px; }
+.pet-family-tab { flex:1; min-width:0; height:40px; border:1.5px solid var(--ink-faint); border-radius:999px; background:transparent; color:var(--ink-soft); font-family:inherit; cursor:pointer; }
+.pet-family-tab.on { background:var(--moss-mist); color:var(--ink); border-color:var(--ink); }
+.form-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; padding-bottom:22px; }
+.form-card { position:relative; min-height:176px; padding:8px 8px 12px; border:1.5px solid var(--ink); border-radius:22px; background:var(--paper); box-shadow:0 3px 0 rgba(53,50,43,.08); cursor:pointer; overflow:hidden; }
+.form-card.selected { background:var(--moss-mist); border-color:var(--moss-deep); }
+.form-card.locked { cursor:not-allowed; background:var(--cream-deep); color:var(--ink-faint); }
+.form-card.locked .pet-sprite { filter:grayscale(.35); opacity:.42; }
+.form-card .pet-sprite { display:block; width:100%; height:132px; }
+.form-card .form-name { font-size:13px; text-align:center; }
+.form-check { position:absolute; top:10px; right:10px; width:25px; height:25px; border:1.5px solid var(--ink); border-radius:50%; background:var(--moss); color:var(--paper); display:none; place-items:center; z-index:2; }
+.form-card.selected .form-check { display:grid; }
+.form-lock { position:absolute; inset:0; z-index:3; display:none; flex-direction:column; align-items:center; justify-content:center; gap:7px; background:rgba(247,241,229,.42); font-size:11px; color:var(--ink-soft); }
+.form-card.locked .form-lock { display:flex; }
+.form-lock svg { width:27px; height:27px; }
+
+/* ============ Challenge 挑战页 ============ */
+#challenge {
+  padding:44px 22px calc(24px + env(safe-area-inset-bottom));
+}
+.challenge-head {
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  min-height:46px; flex:none;
+}
+.challenge-back {
+  width:44px; height:44px; flex:none; display:flex; align-items:center; justify-content:center;
+  border:1.5px solid var(--ink); border-radius:50%; color:var(--ink);
+  background:var(--paper); box-shadow:0 2px 0 rgba(53,50,43,.12); cursor:pointer;
+}
+.challenge-back:active { transform:translateY(2px); box-shadow:none; }
+.challenge-eyebrow {
+  display:flex; align-items:center; gap:8px; margin-left:auto;
+  font-size:12px; color:var(--ink-soft); letter-spacing:2px;
+}
+.challenge-eyebrow::before {
+  content:''; width:7px; height:7px; border-radius:50%; background:var(--moss-deep);
+  box-shadow:0 0 0 4px var(--moss-mist);
+}
+.challenge-step {
+  padding:5px 10px; border:1px solid var(--ink-faint); border-radius:999px;
+  font-family:'Caveat',cursive; font-size:17px; line-height:1; letter-spacing:0;
+}
+.challenge-stage { flex:1; min-height:0; display:flex; padding-top:18px; }
+.challenge-panel { display:none; width:100%; min-height:100%; flex-direction:column; }
+.challenge-panel.active {
+  display:flex; animation:challengeIn .45s cubic-bezier(.2,.8,.3,1) both;
+}
+@keyframes challengeIn {
+  from { opacity:0; transform:translateX(24px); }
+  to { opacity:1; transform:none; }
+}
+.challenge-title { font-size:34px; line-height:1.25; max-width:290px; }
+.challenge-sub {
+  margin-top:8px; font-size:13px; color:var(--ink-soft); line-height:1.8; font-weight:300;
+}
+.challenge-note {
+  position:relative; margin-top:24px; padding:28px 22px 22px;
+  background:var(--paper); border:1.5px solid var(--ink); border-radius:var(--radius-card);
+  box-shadow:var(--shadow-card); transform:rotate(-.5deg);
+}
+.challenge-note::before {
+  content:''; position:absolute; top:-11px; left:50%; width:76px; height:24px;
+  transform:translateX(-50%) rotate(2deg); background:var(--peach-mist);
+  border-left:1px dashed rgba(53,50,43,.14); border-right:1px dashed rgba(53,50,43,.14);
+}
+.challenge-question {
+  font-family:'ZCOOL KuaiLe','Noto Sans SC',sans-serif;
+  font-size:22px; line-height:1.65; font-weight:400; overflow-wrap:anywhere;
+}
+.challenge-input-wrap { position:relative; margin-top:18px; }
+.challenge-input {
+  display:block; width:100%; min-height:138px; max-height:230px; resize:vertical;
+  border:1.5px solid var(--ink-faint); border-radius:18px; outline:none;
+  background:var(--cream); color:var(--ink); padding:16px 16px 34px;
+  font:400 14px/1.85 'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+  transition:border-color .2s, box-shadow .2s;
+}
+.challenge-input::placeholder { color:var(--ink-faint); }
+.challenge-input:focus { border-color:var(--moss-deep); box-shadow:0 3px 0 var(--moss-mist); }
+.challenge-count {
+  position:absolute; right:13px; bottom:10px; color:var(--ink-faint);
+  font:600 15px/1 'Caveat',cursive;
+}
+.challenge-actions { margin-top:auto; padding-top:22px; }
+.challenge-actions .btn-ink { min-height:58px; }
+.challenge-swap { width:100%; min-height:48px; margin-bottom:12px; }
+
+.generated-stamp {
+  display:inline-flex; align-items:center; align-self:flex-start; gap:8px;
+  padding:7px 13px; border:1.5px solid var(--ink); border-radius:999px;
+  background:var(--moss-mist); font-size:12px; letter-spacing:2px;
+  transform:rotate(-2deg);
+}
+.generated-stamp svg { color:var(--moss-deep); }
+.challenge-task-paper { margin-top:18px; transform:rotate(.6deg); }
+.challenge-task-top { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
+.challenge-duration {
+  flex:none; min-width:70px; text-align:center; padding:8px 10px;
+  border:1.5px solid var(--ink); border-radius:16px; background:var(--lilac-mist);
+}
+.challenge-duration strong { display:block; font:700 31px/1 'Caveat',cursive; }
+.challenge-duration span { display:block; margin-top:4px; font-size:10px; color:var(--ink-soft); letter-spacing:1px; }
+.challenge-task-title { font-size:25px; line-height:1.55; overflow-wrap:anywhere; }
+.challenge-reason {
+  margin-top:20px; padding-top:18px; border-top:1.5px dashed var(--ink-faint);
+  font-size:13.5px; color:var(--ink-soft); line-height:1.9; font-weight:300;
+}
+.challenge-reason-label { color:var(--moss-deep); font-weight:500; letter-spacing:1px; }
+.challenge-hint-row {
+  display:flex; gap:8px; flex-wrap:wrap; margin-top:18px;
+}
+.challenge-hint-row span {
+  padding:5px 10px; border:1px solid var(--ink-faint); border-radius:999px;
+  background:var(--cream); color:var(--ink-soft); font-size:11px; letter-spacing:1px;
+}
+
+.countdown-panel { text-align:center; align-items:center; }
+.countdown-summary {
+  width:100%; display:flex; align-items:center; gap:12px; text-align:left;
+  padding:14px 16px; border:1.5px solid var(--ink); border-radius:18px;
+  background:var(--paper); box-shadow:0 3px 0 rgba(53,50,43,.08);
+}
+.countdown-summary-icon {
+  width:40px; height:40px; flex:none; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  border:1.5px solid var(--ink); background:var(--moss-mist);
+}
+.countdown-summary p { font-size:13px; line-height:1.55; overflow-wrap:anywhere; }
+.countdown-summary span { display:block; margin-top:2px; font-size:10px; color:var(--ink-faint); letter-spacing:1.5px; }
+.timer-zone {
+  position:relative; width:248px; height:248px; margin:28px auto 20px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+}
+.timer-blob {
+  position:absolute; inset:20px; z-index:0; background:var(--moss-mist); border:1.5px solid var(--ink);
+  border-radius:58% 42% 55% 45% / 55% 48% 52% 45%;
+  animation:blobMorph 5s ease-in-out infinite, breathe 3.2s ease-in-out infinite;
+}
+.timer-ring {
+  position:absolute; inset:7px; border:1.5px dashed var(--moss-deep); border-radius:50%; opacity:.65;
+}
+.timer-value {
+  position:relative; z-index:2; font:700 72px/.9 'Caveat',cursive;
+  font-variant-numeric:tabular-nums; letter-spacing:1px;
+}
+.timer-caption { position:relative; z-index:2; margin-top:13px; font-size:12px; color:var(--ink-soft); letter-spacing:2px; }
+.countdown-controls { width:100%; display:flex; gap:10px; }
+.countdown-controls .btn-ink { flex:1; }
+.countdown-controls .btn-ghost { width:76px; flex:none; letter-spacing:1px; }
+.challenge-status { min-height:22px; margin-top:12px; font-size:12px; color:var(--ink-soft); letter-spacing:1px; }
+.skip-allowance {
+  width:100%; margin-top:12px; text-align:right;
+  color:var(--ink-faint); font-size:11.5px; letter-spacing:1px;
+}
+.skip-allowance::before {
+  content:''; display:inline-block; width:6px; height:6px; margin-right:7px;
+  border-radius:50%; background:var(--moss); vertical-align:1px;
+}
+.skip-zone { width:100%; margin-top:auto; padding-top:18px; }
+.skip-zone .btn-ghost { width:100%; min-height:58px; letter-spacing:2px; }
+.skip-zone .btn-ghost:disabled { cursor:not-allowed; color:var(--ink-faint); opacity:.6; }
+
+.complete-panel { align-items:center; text-align:center; justify-content:center; padding-bottom:36px; }
+.complete-mark {
+  position:relative; width:132px; height:116px; display:flex; align-items:center; justify-content:center;
+  background:var(--moss-mist); border:1.5px solid var(--ink);
+  border-radius:58% 42% 55% 45% / 55% 48% 52% 45%;
+  animation:floaty 4.2s ease-in-out infinite;
+}
+.complete-mark::after {
+  content:''; position:absolute; inset:-13px; border:1.5px dashed var(--moss-deep); border-radius:50%; opacity:.6;
+}
+.complete-title { margin-top:32px; font-size:31px; line-height:1.35; }
+.complete-copy { margin-top:10px; max-width:280px; font-size:13px; color:var(--ink-soft); line-height:1.9; }
+.complete-skip-state {
+  margin-top:18px; font-size:11px; color:var(--ink-faint); letter-spacing:1px;
+}
+.complete-panel .challenge-actions { width:100%; margin-top:26px; padding-top:0; }
+
+/* 有机贴纸形变 */
+@keyframes blobMorph {
+  0%,100% { border-radius:58% 42% 55% 45% / 55% 48% 52% 45%; }
+  33% { border-radius:45% 55% 48% 52% / 48% 55% 45% 52%; }
+  66% { border-radius:52% 48% 58% 42% / 45% 52% 48% 55%; }
+}
+@keyframes blink { 0%,92%,100%{transform:scaleY(1)} 96%{transform:scaleY(.1)} }
+
+/* 完成奖励弹窗 */
+.reward-modal {
+  position:absolute; inset:0; z-index:90; display:flex; align-items:flex-end; justify-content:center;
+  padding:24px 18px calc(24px + env(safe-area-inset-bottom));
+  background:rgba(53,50,43,.24); opacity:0; visibility:hidden; pointer-events:none;
+  transition:opacity .28s ease, visibility .28s;
+}
+.reward-modal.show { opacity:1; visibility:visible; pointer-events:auto; }
+.reward-dialog {
+  position:relative; width:100%; max-width:354px; padding:25px 22px 22px; overflow:hidden;
+  background:var(--paper); border:1.5px solid var(--ink); border-radius:var(--radius-card);
+  box-shadow:0 5px 0 rgba(53,50,43,.18); text-align:center;
+  transform:translateY(24px); transition:transform .4s cubic-bezier(.22,.9,.3,1.2);
+}
+.reward-modal.show .reward-dialog { transform:none; }
+.reward-chip {
+  display:inline-flex; align-items:center; gap:6px; padding:6px 12px;
+  border:1px solid var(--ink-faint); border-radius:999px; background:var(--moss-mist);
+  color:var(--moss-deep); font-size:11px; letter-spacing:2px;
+}
+.reward-heading { margin-top:12px; font-size:27px; }
+.reward-art {
+  position:relative; width:168px; height:146px; margin:17px auto 10px;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--lilac-mist); border:1.5px solid var(--ink); border-radius:48% 52% 44% 56% / 55% 45% 55% 45%;
+  animation:floaty 4.3s ease-in-out infinite;
+}
+.reward-art::after {
+  content:''; position:absolute; inset:-9px; border:1.5px dashed var(--lilac-deep); border-radius:50%; opacity:.45;
+}
+.reward-name { font-size:25px; line-height:1.35; }
+.reward-note { margin-top:5px; font-size:12px; color:var(--ink-soft); letter-spacing:1px; }
+.reward-actions { display:flex; flex-direction:column; gap:10px; margin-top:20px; }
+.reward-actions .btn-ghost { width:100%; }
+.reward-swipe-hint { margin-top:13px; font-size:10.5px; color:var(--ink-faint); letter-spacing:1px; }
+.share-sheet {
+  position:absolute; left:0; right:0; bottom:0; z-index:3; padding:22px;
+  background:var(--paper); border-top:1.5px solid var(--ink);
+  transform:translateY(105%); transition:transform .38s cubic-bezier(.22,.9,.3,1.2);
+}
+.share-sheet.show { transform:none; }
+.share-sheet-title { font-size:20px; text-align:left; }
+.share-options { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:15px; }
+.share-option {
+  min-height:84px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+  border:1.5px solid var(--ink); border-radius:18px; background:var(--cream); color:var(--ink); cursor:pointer;
+  font-family:inherit; font-size:13px;
+}
+.share-option:active { transform:translateY(2px); }
+.share-close { width:100%; margin-top:10px; }
+.share-feedback { min-height:18px; margin-top:9px; font-size:11px; color:var(--moss-deep); }
+
+/* 彩纸 */
+.confetti {
+  position:fixed; z-index:200; width:9px; height:14px; border-radius:3px;
+  pointer-events:none; animation:confettiFall 1.4s cubic-bezier(.2,.6,.4,1) forwards;
+}
+@keyframes confettiFall {
+  0% { transform:translateY(0) rotate(0deg); opacity:1; }
+  100% { transform:translateY(46vh) rotate(340deg); opacity:0; }
+}
+
+/* ============ 小屏适配 ============ */
+@media (max-height:720px) {
+  #challenge { padding-top:38px; }
+  .challenge-stage { padding-top:10px; }
+  .challenge-note { margin-top:14px; }
+  .challenge-input { min-height:100px; }
+  .timer-zone { width:205px; height:205px; margin:16px auto 12px; }
+  .timer-value { font-size:60px; }
+  .pet-stage { min-height:300px; }
+  .pet-stage .pet-sprite.pet-main-sprite { width:272px; height:326px; }
+  .home-greet .hi { font-size:38px; }
+  #splash .logo-text { font-size:72px; }
+  #sense .orb-zone { width:160px; height:160px; margin:30px 0 28px; }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; }
+}
+
+/* ============ 分享页（--s- 前缀，零污染） ============ */
+.phone #share {
+  --s-cream: #FFFDF7;
+  --s-ink: #35322B;
+  --s-ink-soft: #77715F;
+  --s-moss: #94B94E;
+  --s-moss-deep: #6F9432;
+  --s-moss-mist: #E4EDCF;
+  --s-lilac: #B7A5E3;
+}
+#share {
+  padding-top:64px;
+  background:linear-gradient(180deg, #EDE9F5 0%, #E3DDEF 100%);
+  color:var(--s-ink);
+}
+#share .share-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+#share .back-btn {
+  width:36px; height:36px; border-radius:50%; border:none; background:transparent;
+  font-size:20px; color:var(--s-ink); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+}
+#share .share-title { font-size:30px; }
+#share .share-sub { font-size:14px; color:var(--s-ink-soft); margin-top:2px; letter-spacing:2px; font-weight:300; }
+#share .share-sub .sparkle-inline { color:var(--s-moss-deep); }
+#share .share-card {
+  margin-top:24px; background:var(--s-cream);
+  border:1.5px solid var(--s-ink); border-radius:22px;
+  box-shadow:0 3px 0 rgba(53,50,43,.08), 0 12px 24px -12px rgba(53,50,43,.18);
+  padding:22px; position:relative;
+}
+#share .card-row1 { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; }
+#share .logo-text {
+  font-family:'Caveat',cursive; font-weight:700; font-style:italic;
+  font-size:42px; line-height:1; color:var(--s-ink);
+}
+#share .logo-text .dot { color:var(--s-moss-deep); }
+#share .mascot {
+  flex:none; width:60px; height:48px; position:relative; margin-top:-2px;
+  animation:floaty 4s ease-in-out infinite;
+}
+#share .mascot .body {
+  position:absolute; inset:0;
+  background:radial-gradient(circle at 36% 30%, #DCD1F4, var(--s-lilac) 55%, #8F7BC9);
+  border:1.5px solid var(--s-ink);
+  border-radius:58% 42% 55% 45% / 55% 48% 52% 45%;
+  animation:blobMorph 5s ease-in-out infinite;
+}
+#share .mascot .eyes { position:absolute; inset:0; display:flex; justify-content:center; gap:12px; padding-top:18px; }
+#share .mascot .eye { width:6px; height:9px; border-radius:50%; background:var(--s-ink); }
+#share .polaroid {
+  margin:0 auto; background:#fff; padding:10px 10px 26px;
+  border:1px solid rgba(0,0,0,.08); border-radius:4px;
+  box-shadow:0 4px 14px -4px rgba(0,0,0,.18);
+  width:100%; max-width:300px; position:relative;
+  transform:rotate(-1.8deg);
+}
+#share .polaroid .photo {
+  width:100%; aspect-ratio:1/1; background:#EFE7D6; border-radius:2px;
+  position:relative; overflow:hidden; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; color:var(--s-ink-soft);
+}
+#share .polaroid .photo img { width:100%; height:100%; object-fit:cover; display:block; }
+#share .polaroid .photo .ph-text { text-align:center; font-size:12px; letter-spacing:2px; }
+#share .polaroid .photo .ph-text .cam { font-size:24px; display:block; margin-bottom:6px; }
+#share .polaroid .ph-meta {
+  position:absolute; bottom:-20px; left:0; right:0; text-align:center;
+  font-family:'Caveat',cursive; font-size:14px; color:var(--s-ink-soft);
+}
+#share .share-meta {
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  margin-top:14px; flex-wrap:nowrap; white-space:nowrap;
+  font-family:'Caveat',cursive; font-style:italic;
+  color:var(--s-ink-soft); font-size:14px; letter-spacing:.3px; padding:0 8px;
+}
+#share .share-meta .meta-ic { width:13px; height:13px; color:var(--s-moss-deep); flex:none; }
+#share .share-meta input {
+  border:none; background:transparent; outline:none;
+  font:inherit; font-style:italic; color:var(--s-ink);
+  padding:1px 0; width:auto; min-width:0; max-width:none; flex:0 1 auto;
+  text-align:center;
+}
+#share .share-meta input:focus { color:var(--s-ink); border-bottom:1px dashed var(--s-moss-deep); }
+#share .share-meta .meta-sep { color:var(--s-moss); font-weight:600; opacity:.55; }
+#share .share-bottom { display:flex; flex-direction:column; gap:11px; margin-top:auto; padding-top:24px; }
+#share .btn-platform {
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  height:56px; border-radius:999px; cursor:pointer; font:inherit; font-size:15px; letter-spacing:2px;
+  border:1.5px solid var(--s-ink); background:transparent; color:var(--s-ink);
+  transition:all .15s;
+}
+#share .btn-platform:active { transform:scale(.98); }
+#share .btn-save { background:var(--s-ink); color:#FBF8F0; border-color:var(--s-ink); box-shadow:0 4px 0 rgba(53,50,43,.25); }
+#share .btn-save:active { transform:translateY(3px); box-shadow:0 1px 0 rgba(53,50,43,.25); }
+#share .btn-save:hover { color:#FBF8F0; border-color:var(--s-ink); }
+#share .ic-wc { color:#1AAD19; }
+#share .ic-dy { color:#161823; }
+#share .file-input { display:none; }
+#share { padding-bottom:34px; }
+#share .toast-lb {
+  position:absolute; left:50%; bottom:30px; transform:translate(-50%,12px);
+  background:var(--s-ink); color:#FBF8F0; padding:9px 16px; border-radius:999px;
+  font-size:12px; opacity:0; pointer-events:none; transition:.3s; z-index:5; white-space:nowrap;
+}
+#share .toast-lb.show { opacity:1; transform:translate(-50%,0); }
+</style>
+</head>
+<body>
+
+<div class="phone" id="phone" data-step="1">
+
+  <!-- 顶部流程进度（状态栏已按要求移除） -->
+  <div class="flow">
+    <div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div>
+  </div>
+
+  <!-- ============ ① 启动页 ============ -->
+  <section class="screen active" id="splash">
+    <svg class="sparkle twinkle" style="top:15%;left:18%;color:var(--moss)" width="17" height="17" viewBox="0 0 24 24"><path d="M12 2C12.6 8 14 10 22 12 14 14 12.6 16 12 22 11.4 16 10 14 2 12 10 10 11.4 8 12 2Z"/></svg>
+    <svg class="sparkle twinkle" style="top:24%;right:20%;color:var(--lilac);animation-delay:.8s" width="13" height="13" viewBox="0 0 24 24"><path d="M12 2C12.6 8 14 10 22 12 14 14 12.6 16 12 22 11.4 16 10 14 2 12 10 10 11.4 8 12 2Z"/></svg>
+    <svg class="sparkle twinkle" style="bottom:30%;left:22%;color:var(--peach);animation-delay:1.5s" width="12" height="12" viewBox="0 0 24 24"><path d="M12 2C12.6 8 14 10 22 12 14 14 12.6 16 12 22 11.4 16 10 14 2 12 10 10 11.4 8 12 2Z"/></svg>
+    <svg class="sparkle twinkle" style="top:46%;right:13%;color:var(--ink-faint);animation-delay:2s" width="9" height="9" viewBox="0 0 24 24"><path d="M12 2C12.6 8 14 10 22 12 14 14 12.6 16 12 22 11.4 16 10 14 2 12 10 10 11.4 8 12 2Z"/></svg>
+
+    <div class="rise d1"><div class="logo-ball"></div></div>
+    <h1 class="logo-text rise d2">Glitch<span class="dot">.</span></h1>
+    <p class="sub rise d3">人 类 丰 容 计 划</p>
+    <div class="divider rise d4"></div>
+    <p class="tagline rise d5">给重复的日子里<br>加一点点野生的小意外</p>
+    <div class="enter rise d6" onclick="go('perm')">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round"><path d="M17 5v22M8 19l9 9 9-9"/></svg>
+      <span class="tap-hint">轻触任意处开始</span>
+    </div>
+    <span class="v">v0.1 · 内测版</span>
+  </section>
+
+  <!-- ============ ② 授权页（一键勾选全部） ============ -->
+  <section class="screen" id="perm">
+    <svg class="sparkle twinkle" style="top:12%;right:12%;color:var(--moss)" width="14" height="14" viewBox="0 0 24 24"><path d="M12 2C12.6 8 14 10 22 12 14 14 12.6 16 12 22 11.4 16 10 14 2 12 10 10 11.4 8 12 2Z"/></svg>
+    <h2 class="head-title font-display rise d1">先认识一下<br>再开始照顾你</h2>
+    <p class="head-sub rise d2">Glitch 想安静地感知你身边的环境，<br>才能为你挑一件正合适的小任务。</p>
+
+    <div class="perm-list">
+      <div class="perm-card rise d3" onclick="togglePerm(this)">
+        <div class="perm-icon i-a">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 23c-4.5-4.2-8-7.6-8-11.4A8 8 0 0 1 21 11.6c0 3.8-3.5 7.2-8 11.4Z"/><circle cx="13" cy="11" r="2.7"/></svg>
+        </div>
+        <div><h3>天气与位置</h3><p>看看你那边的天气，才好挑任务</p></div>
+        <div class="check">
+          <svg width="11" height="9" viewBox="0 0 11 9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 4.5 4 7 9.5 1.5"/></svg>
+        </div>
+      </div>
+      <div class="perm-card rise d4" onclick="togglePerm(this)">
+        <div class="perm-icon i-b">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round"><rect x="9" y="3" width="8" height="13" rx="4"/><path d="M5.5 11.5a7.5 7.5 0 0 0 15 0M13 19v3.5M9.5 23h7"/></svg>
+        </div>
+        <div><h3>声音环境</h3><p>只是分辨吵与静，不会录音</p></div>
+        <div class="check">
+          <svg width="11" height="9" viewBox="0 0 11 9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 4.5 4 7 9.5 1.5"/></svg>
+        </div>
+      </div>
+      <div class="perm-card rise d5" onclick="togglePerm(this)">
+        <div class="perm-icon i-c">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round"><circle cx="13" cy="13" r="9.5"/><path d="m15.5 8.5-6 3.2 3.2 6 6-3.2z"/></svg>
+        </div>
+        <div><h3>设备运动</h3><p>知道你走了多少步、歇了多久</p></div>
+        <div class="check">
+          <svg width="11" height="9" viewBox="0 0 11 9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 4.5 4 7 9.5 1.5"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <p class="reassure rise d6">随时可以在设置里关掉 · 数据只留在本机<br>Glitch 比你更在意你的隐私</p>
+    <div class="cta-zone rise d7">
+      <button class="btn-ink" onclick="acceptAllPerms()">好的，交给你</button>
+    </div>
+  </section>
+
+  <!-- ============ ③ 感知中 ============ -->
+  <section class="screen" id="sense">
+    <div class="stars" id="stars"></div>
+    <h2 class="sense-title font-display rise d1">正在感知你的世界</h2>
+    <div class="orb-zone rise d2">
+      <div class="orb-ring"></div>
+      <div class="orb-ring r2"></div>
+      <div class="orb"></div>
+    </div>
+    <div class="sense-status" id="senseStatus">
+      <div class="sense-item"><span class="tick"><svg width="11" height="9" viewBox="0 0 11 9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 4.5 4 7 9.5 1.5"/></svg></span><span>感受今晚的风<span class="dots"></span></span></div>
+      <div class="sense-item"><span class="tick"><svg width="11" height="9" viewBox="0 0 11 9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 4.5 4 7 9.5 1.5"/></svg></span><span>听一听周围的声音<span class="dots"></span></span></div>
+      <div class="sense-item"><span class="tick"><svg width="11" height="9" viewBox="0 0 11 9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 4.5 4 7 9.5 1.5"/></svg></span><span>数一数今天的脚步<span class="dots"></span></span></div>
+      <div class="sense-item"><span class="tick"><svg width="11" height="9" viewBox="0 0 11 9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 4.5 4 7 9.5 1.5"/></svg></span><span>为你挑一件小任务<span class="dots"></span></span></div>
+    </div>
+    <button class="btn-ink sense-cta" id="senseCta" onclick="go('home')">准备好啦 ›</button>
+  </section>
+
+  <!-- ============ ④ 首页 ============ -->
+  <section class="screen" id="home">
+    <svg class="sparkle twinkle" style="top:11%;right:16%;color:var(--peach)" width="13" height="13" viewBox="0 0 24 24"><path d="M12 2C12.6 8 14 10 22 12 14 14 12.6 16 12 22 11.4 16 10 14 2 12 10 10 11.4 8 12 2Z"/></svg>
+    <div class="home-top rise d1">
+      <span class="loc-chip"><span class="dot"></span>南京市 · 浦口区</span>
+      <span class="avatar">G</span>
+    </div>
+    <div class="home-greet rise d2">
+      <h2 class="hi font-display">晚上好呀</h2>
+      <p class="date" id="todayDate">— · —</p>
+    </div>
+
+    <div class="card weather-card rise d3">
+      <div class="weather-art">
+        <svg width="64" height="46" viewBox="0 0 64 46" fill="none">
+          <path d="M14 36a10 10 0 0 1-1-19.9A13 13 0 0 1 38.6 13 9.5 9.5 0 0 1 39 32H14Z" fill="#fff" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M46 22a7 7 0 0 0-13-3.5" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="20" cy="40" r="1.6" fill="var(--ink)"/><circle cx="27" cy="42" r="1.6" fill="var(--ink)"/><circle cx="34" cy="40" r="1.6" fill="var(--ink)"/>
+        </svg>
+      </div>
+      <div>
+        <div class="weather-num">30<sup>°</sup></div>
+        <div class="weather-desc">阴天</div>
+      </div>
+      <div class="weather-meta">
+        <div class="row">湿度<b>65%</b></div>
+        <div class="row">东北风<b>4级</b></div>
+        <div class="row">空气质量<b>优</b></div>
+      </div>
+    </div>
+
+    <div class="card home-question-card rise d4">
+      <div class="home-question-head">
+        <span class="home-question-eyebrow">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c.7 4.5 2 5.8 6.5 6.5-4.5.7-5.8 2-6.5 6.5-.7-4.5-2-5.8-6.5-6.5C10 8.8 11.3 7.5 12 3Z"/></svg>
+          今天的小问题
+        </span>
+        <button class="home-question-swap" type="button" onclick="swapChallengeQuestion()">换一个</button>
+      </div>
+      <p class="home-question-text" id="homeQuestion"></p>
+      <div class="home-question-input-wrap">
+        <textarea class="home-question-input" id="homeAnswer" maxlength="240" placeholder="允许留空，也可以随便写几句"></textarea>
+        <button class="home-question-submit" type="button" onclick="submitHomeAnswer()" aria-label="提交并查看挑战">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M14 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+      <p class="home-question-hint">写完点右边按钮，碎片会自己继续</p>
+    </div>
+  </section>
+
+  <!-- 底部导航：左下宠物 · 中间挑战 · 右下我的 -->
+  <nav class="tabbar" id="tabbar">
+    <button class="tab" id="tabPet" onclick="go('pet')">
+      <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20c4.2 0 7-2.4 7-6.1 0-2.8-1.9-5.2-4.7-6.1M9.5 8C6.8 8.7 5 11 5 13.9 5 17.6 7.8 20 12 20Z"/><path d="M10 7.8C8.2 5.2 9.7 3.4 12 5c2.2-2.2 4.2-.7 2.3 2.8M9.5 13h.01M14.5 13h.01M10.2 16c1.2.8 2.4.8 3.6 0"/></svg>
+      宠物
+    </button>
+    <button class="tab-fab" onclick="go('home')" aria-label="回到首页">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5L12 4l9 7.5"/><path d="M5 10v9h14v-9"/><path d="M10 19v-5h4v5"/></svg>
+    </button>
+    <button class="tab" id="tabProfile" onclick="go('profile')">
+      <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M5 21c0-4.2 2.8-7 7-7s7 2.8 7 7"/></svg>
+      我的
+    </button>
+  </nav>
+
+  <!-- ============ 我的（个人用户页） ============ -->
+  <section class="screen" id="profile">
+    <div class="profile-tools rise d1">
+      <button class="round-tool" onclick="petToast('暂时没有新通知')" aria-label="通知"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9a6 6 0 0 1 12 0v5l2 3H4l2-3V9ZM10 20h4"/></svg></button>
+      <button class="round-tool" onclick="go('settings')" aria-label="设置"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.4 1a8 8 0 0 0-1.7-1L14.5 3h-5l-.4 3.1a8 8 0 0 0-1.7 1l-2.4-1-2 3.4L5 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.4-1a8 8 0 0 0 1.7 1l.4 3.1h5l.4-3.1a8 8 0 0 0 1.7-1l2.4 1 2-3.4-2-1.5a7 7 0 0 0 .1-1Z"/></svg></button>
+    </div>
+    <div class="profile-person rise d2">
+      <button class="profile-avatar" onclick="openProfileEditor()" aria-label="修改头像"><span class="pet-sprite" id="profilePetSprite"></span><img id="profileCustomAvatar" alt="用户自定义头像"></button>
+      <div class="profile-info"><h2 class="font-display" id="profileName">晚安呀！</h2><div class="profile-id">ID：20240520</div><div class="profile-bio">在细碎的日常里，收集小小的美好。</div><button class="profile-edit-btn" onclick="openProfileEditor()">编辑资料</button></div>
+    </div>
+    <div class="card profile-stats rise d3">
+      <div class="profile-stat"><b>12</b><span>连续丰容天数</span></div><div class="profile-stat"><b>36</b><span>完成体验</span></div><div class="profile-stat"><b id="ownedCount">0</b><span>收集道具</span></div><div class="profile-stat"><b>15</b><span>点亮地点</span></div>
+    </div>
+    <div class="profile-section rise d4">
+      <div class="profile-section-head"><h3 class="font-display">我的成就</h3><button onclick="petToast('更多成就正在路上')">全部成就 ›</button></div>
+      <div class="achievement-row">
+        <div class="achievement"><div class="achievement-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 4C12 4 7 7 6 15c4-2 7-3 11-7-3.4 4.4-6.6 6.7-11 8M6 15c-1 2-1 4 0 6"/></svg></div><p>新手探索者</p><time>2024.05.01</time></div>
+        <div class="achievement"><div class="achievement-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21S3 16 3 9.5C3 5 9 3.5 12 8c3-4.5 9-3 9 1.5C21 16 12 21 12 21Z"/></svg></div><p>感知生活</p><time>2024.05.05</time></div>
+        <div class="achievement"><div class="achievement-icon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 15a7 7 0 0 1 14 0M12 3v3M4 7l2 2M20 7l-2 2M3 18h18"/></svg></div><p>早起计划</p><time>2024.05.15</time></div>
+        <div class="achievement"><div class="achievement-icon"><svg width="29" height="29" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6 7 .8-5 4.8 1.4 7-6.4-3.4-6.4 3.4 1.4-7-5-4.8L9 8l3-6Z"/></svg></div><p>坚持热爱</p><time>2024.06.01</time></div>
+      </div>
+    </div>
+    <div class="profile-section rise d5">
+      <div class="profile-section-head"><h3 class="font-display">我的记录</h3><button onclick="petToast('全部记录功能开发中')">查看全部 ›</button></div>
+      <div class="record-row"><div class="record"><div class="record-thumb"></div><p>8月22日<br>光影记录</p></div><div class="record"><div class="record-thumb"></div><p>8月21日<br>一杯柠檬水</p></div><div class="record"><div class="record-thumb"></div><p>8月20日<br>晚霞真美</p></div><div class="record"><div class="record-thumb"></div><p>8月19日<br>绿植有新芽</p></div></div>
+    </div>
+  </section>
+
+  <!-- ============ 设置页 ============ -->
+  <section class="screen" id="settings">
+    <div class="settings-head rise d1"><button class="pet-back" onclick="go('profile')" aria-label="返回个人页"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 5-7 7 7 7"/></svg></button><h2 class="font-display">设置</h2><span></span></div>
+    <div class="card settings-group rise d2"><button class="settings-row" onclick="petToast('通知设置功能开发中')"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)" stroke-width="1.7"><path d="M6 9a6 6 0 0 1 12 0v5l2 3H4l2-3V9ZM10 20h4"/></svg><span class="setting-label">通知设置</span><span class="chev">›</span></button><button class="settings-row" onclick="petToast('隐私设置功能开发中')"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)" stroke-width="1.7"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span class="setting-label">隐私设置</span><span class="chev">›</span></button><button class="settings-row" onclick="petToast('账号安全功能开发中')"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)" stroke-width="1.7"><path d="M12 3 4 6v6c0 5 3 8 8 10 5-2 8-5 8-10V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg><span class="setting-label">账号与安全</span><span class="chev">›</span></button></div>
+    <div class="card settings-group rise d3"><button class="settings-row" onclick="petToast('帮助与反馈功能开发中')"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.6 2.6 0 1 1 4 2.2c-1 .6-1.5 1.2-1.5 2.3M12 17h.01"/></svg><span class="setting-label">帮助与反馈</span><span class="chev">›</span></button><button class="settings-row" onclick="petToast('Glitch · 人类丰容计划')"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 10v7M12 7h.01"/></svg><span class="setting-label">关于我们</span><span class="chev">›</span></button></div>
+    <button class="logout-btn rise d4" onclick="petToast('测试版暂不执行退出登录')">退出登录</button>
+  </section>
+
+  <div class="profile-editor" id="profileEditor" role="dialog" aria-modal="true" aria-labelledby="profileEditorTitle" onclick="closeProfileEditor(event)">
+    <div class="profile-editor-sheet">
+      <div class="editor-head"><h3 class="font-display" id="profileEditorTitle">编辑个人资料</h3><button class="editor-close" onclick="closeProfileEditor()" aria-label="关闭">×</button></div>
+      <div class="avatar-editor">
+        <div class="avatar-preview"><span class="pet-sprite" id="editorPetSprite"></span><img id="editorAvatarPreview" alt="头像预览"></div>
+        <div class="avatar-actions"><button class="avatar-action primary" onclick="document.getElementById('avatarFile').click()">选择本地图片</button><button class="avatar-action" onclick="usePetAsAvatar()">使用宠物头像</button><input id="avatarFile" type="file" accept="image/*" hidden onchange="previewAvatarFile(this)"></div>
+      </div>
+      <label class="editor-field">用户名称<input id="profileNameInput" maxlength="12" placeholder="请输入名称"></label>
+      <button class="btn-ink editor-save" onclick="saveProfileChanges()">保存修改</button>
+    </div>
+  </div>
+
+  <!-- ============ 宠物主页 ============ -->
+  <section class="screen pet-screen" id="pet">
+    <div class="pet-head rise d1">
+      <span class="pet-head-spacer"></span>
+      <div class="pet-profile"><span class="pet-avatar"><img src="assets/sprout-pet.png" alt="嫩芽宠物头像"></span><div><div class="pet-name font-display">晚安呀</div><div class="pet-level"><span id="petLevelText">Lv.1</span> · 丰容点 <span class="currency-value">120</span></div><div class="pet-xp" aria-label="宠物经验进度"><span id="petXpBar"></span></div></div></div>
+      <button class="pet-change-btn" onclick="go('pet-change')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 7h11l-3-3M17 17H6l3 3M18 7l2 2-2 2M6 17l-2-2 2-2"/></svg>更换宠物</button>
+    </div>
+    <div class="pet-stage rise d2">
+      <div class="pet-actions">
+        <button class="pet-rail-btn" onclick="go('pet-shop')"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9h16v11H4zM3 9l2-5h14l2 5"/><path d="M8 9v11M16 9v11M3 9c0 2 3 2 4 0 1 2 3 2 4 0 1 2 3 2 4 0 1 2 4 2 6 0"/></svg>商城</button>
+        <button class="pet-rail-btn" onclick="go('pet-actions')"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3c1.2 3.8 2.2 4.8 6 6-3.8 1.2-4.8 2.2-6 6-1.2-3.8-2.2-4.8-6-6 3.8-1.2 4.8-2.2 6-6Z"/><path d="M18 15c.5 1.8 1 2.3 2.8 2.8-1.8.5-2.3 1-2.8 2.8-.5-1.8-1-2.3-2.8-2.8 1.8-.5 2.3-1 2.8-2.8Z"/></svg>动作</button>
+        <button class="pet-rail-btn" onclick="go('pet-feed')"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 14c0 4 3 6 8 6s8-2 8-6H4Z"/><path d="M7 14c0-3 2-5 5-5s5 2 5 5M12 9V5M9 7l3 2 3-2"/></svg>投喂</button>
+      </div>
+      <div class="pet-talk show" id="petTalk">今天也要一起攒一点小开心呀。</div>
+      <img class="pet-main" id="petMain" src="assets/sprout-pet.png" alt="嫩芽小兽晚安呀">
+      <div class="pet-sprite pet-main-sprite is-hidden" id="selectedPetSprite" role="img" aria-label="当前选择的宠物形象"></div>
+      <svg class="sparkle twinkle" style="top:80px;left:88px;color:var(--peach)" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C12.6 8 14 10 22 12 14 14 12.6 16 12 22 11.4 16 10 14 2 12 10 10 11.4 8 12 2Z"/></svg>
+    </div>
+    <div class="card daily-card rise d3"><svg width="28" height="28" viewBox="0 0 24 24" fill="var(--moss-deep)"><path d="M20 4C12 4 7 7 6 15c4-2 7-3 11-7-3.4 4.4-6.6 6.7-11 8-.2 1.7.1 3.3.7 4.5l2-.8c-.5-1-.7-2-.6-3C17 15.5 21 10.5 20 4Z"/></svg><div class="daily-copy"><div class="daily-title font-display">额外任务</div><div class="daily-meta"><span>再进行一次丰容</span><b id="extraTaskProgress">0/1</b></div><div class="mini-progress"><span id="extraTaskBar" style="width:0"></span></div><div class="reward-line" id="extraRewardLine">奖励：经验 +30 · 丰容点 +12</div></div><div class="extra-actions"><button class="enrich-go" onclick="goExtraEnrichment()">去丰容</button><button class="gift-sticker locked" id="extraTaskReward" onclick="claimExtraTask()" aria-label="领取额外任务奖励"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 10h16v10H4zM3 7h18v4H3zM12 7v13M8 7c-3-2-1-5 1-3l3 3M16 7c3-2 1-5-1-3l-3 3"/></svg></button></div></div>
+    <button class="test-secret" onclick="toggleTestPanel()" aria-label="打开测试设置"></button>
+    <div class="card test-panel" id="testPanel">
+      <div class="test-head"><strong class="font-display">测试设置</strong><span class="test-badge">仅测试版</span></div>
+      <div class="test-controls">
+        <label class="test-field">宠物等级<select id="testLevel"><option value="1">Lv.1</option><option value="2">Lv.2</option><option value="3">Lv.3</option><option value="4">Lv.4</option><option value="5">Lv.5</option></select></label>
+        <label class="test-field">丰容点<input id="testCurrency" type="number" min="0" max="999999" step="1" value="120" inputmode="numeric"></label>
+        <button class="test-apply" onclick="applyTestSettings()">应用</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 更换宠物 ============ -->
+  <section class="screen pet-screen" id="pet-change">
+    <div class="pet-head rise d1"><button class="pet-back" onclick="go('pet')" aria-label="返回宠物页"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 5-7 7 7 7"/></svg></button><h2 class="font-display">更换宠物</h2><div class="leaf-balance"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4C12 4 7 7 6 15c4-2 7-3 11-7-3.4 4.4-6.6 6.7-11 8-.2 1.7.1 3.3.7 4.5l2-.8c-.5-1-.7-2-.6-3C17 15.5 21 10.5 20 4Z"/></svg><span class="currency-label">丰容点</span><span class="currency-value">120</span></div></div>
+    <p class="change-intro rise d2">每只宠物准备了 6 种形象。选择后会同步替换宠物主页的展示，刷新页面也会为你保留。</p>
+    <div class="pet-family-tabs rise d3" id="petFamilyTabs">
+      <button class="pet-family-tab on" onclick="showPetFamily(this,0)">嫩芽龙</button>
+      <button class="pet-family-tab" onclick="showPetFamily(this,1)">星星云</button>
+      <button class="pet-family-tab" onclick="showPetFamily(this,2)">橘子豚</button>
+    </div>
+    <div class="form-grid rise d4" id="petFormGrid"></div>
+  </section>
+
+  <!-- ============ 宠物商城 ============ -->
+  <section class="screen pet-screen" id="pet-shop">
+    <div class="pet-head rise d1"><button class="pet-back" onclick="go('pet')" aria-label="返回宠物页"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 5-7 7 7 7"/></svg></button><h2 class="font-display">商城</h2><div class="leaf-balance"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4C12 4 7 7 6 15c4-2 7-3 11-7-3.4 4.4-6.6 6.7-11 8-.2 1.7.1 3.3.7 4.5l2-.8c-.5-1-.7-2-.6-3C17 15.5 21 10.5 20 4Z"/></svg><span class="currency-label">丰容点</span><span class="currency-value">120</span></div></div>
+    <div class="category-tabs rise d2"><button class="category-tab on" onclick="filterShop(this,'all')">全部</button><button class="category-tab" onclick="filterShop(this,'dress')">装扮</button><button class="category-tab" onclick="filterShop(this,'scene')">场景</button><button class="category-tab" onclick="filterShop(this,'prop')">道具</button></div>
+    <div class="shop-grid rise d3" id="shopGrid">
+      <button class="shop-item" data-cat="dress" onclick="buyItem('芽芽帽',10)"><div class="item-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 42c2-15 10-23 19-23s17 8 19 23M10 42h44M32 19c-6-9-15-5-13 1 5 2 9 2 13-1Zm0 0c6-9 15-5 13 1-5 2-9 2-13-1Z"/><path d="M18 42v8h28v-8"/></svg></div><div class="item-name">芽芽帽</div><div class="item-price">丰容点 10</div></button>
+      <button class="shop-item" data-cat="dress" onclick="buyItem('云朵睡帽',15)"><div class="item-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 42c5-19 17-27 34-27-4 9-4 18 0 27H15Z"/><circle cx="49" cy="14" r="5"/><path d="M12 42h40c2 0 3 2 3 4s-1 4-3 4H12c-2 0-3-2-3-4s1-4 3-4Z"/></svg></div><div class="item-name">云朵睡帽</div><div class="item-price">丰容点 15</div></button>
+      <button class="shop-item" data-cat="prop" onclick="buyItem('小花背包',12)"><div class="item-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><rect x="14" y="18" width="36" height="34" rx="12"/><path d="M24 18c0-9 16-9 16 0M22 31h20M32 24v14"/><circle cx="32" cy="31" r="7"/></svg></div><div class="item-name">小花背包</div><div class="item-price">丰容点 12</div></button>
+      <button class="shop-item" data-cat="scene" onclick="buyItem('云朵小窝',20)"><div class="item-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 42c0-6 5-10 11-10 1-9 14-12 20-5 8-3 15 2 15 9 0 7-5 11-13 11H17c-5 0-8-2-8-5Z"/><path d="M23 39c3-7 15-7 18 0"/></svg></div><div class="item-name">云朵小窝</div><div class="item-price">丰容点 20</div></button>
+      <button class="shop-item" data-cat="prop" onclick="buyItem('月亮秋千',18)"><div class="item-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10v24M46 10v24M14 10h36M16 34h32c-2 13-8 19-16 19s-14-6-16-19Z"/><path d="M28 34c9-4 14-12 15-21"/></svg></div><div class="item-name">月亮秋千</div><div class="item-price">丰容点 18</div></button>
+      <button class="shop-item" data-cat="scene" onclick="buyItem('漂浮气球',15)"><div class="item-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="24" cy="24" rx="11" ry="15"/><ellipse cx="42" cy="20" rx="10" ry="14"/><path d="m22 39 3 3 3-3M40 34l3 3 3-3M25 42l7 14M43 37l-9 19"/></svg></div><div class="item-name">漂浮气球</div><div class="item-price">丰容点 15</div></button>
+    </div>
+  </section>
+
+  <!-- ============ 宠物动作 ============ -->
+  <section class="screen pet-screen" id="pet-actions">
+    <div class="pet-head rise d1"><button class="pet-back" onclick="go('pet')" aria-label="返回宠物页"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 5-7 7 7 7"/></svg></button><h2 class="font-display">动作</h2><div class="leaf-balance"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4C12 4 7 7 6 15c4-2 7-3 11-7-3.4 4.4-6.6 6.7-11 8-.2 1.7.1 3.3.7 4.5l2-.8c-.5-1-.7-2-.6-3C17 15.5 21 10.5 20 4Z"/></svg><span class="currency-label">丰容点</span><span class="currency-value">120</span></div></div>
+    <div class="action-stage rise d2"><img class="pet-main" id="actionPet" src="assets/sprout-pet.png" alt="正在做动作的嫩芽小兽"></div><div class="action-note" id="actionNote">点一个动作，和晚安呀打个招呼</div>
+    <div class="action-grid rise d3">
+      <button class="action-item" onclick="playAction(this,'action-wave','晚安呀挥了挥小爪子')"><div class="item-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 52c-4-9-4-20 1-28M41 52c4-9 4-20-1-28M24 28c-11 0-15-10-11-16 5 8 10 6 15 1M40 28c8-2 11-7 12-14"/><circle cx="32" cy="25" r="14"/><path d="M27 24h.1M37 24h.1M28 31c3 2 5 2 8 0"/></svg></div><div class="item-name">打招呼</div></button>
+      <button class="action-item" onclick="playAction(this,'action-hop','开心得蹦了两下')"><div class="item-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 46c7-5 25-5 32 0M24 20l8-8 8 8M32 12v27"/><path d="m20 33 12 8 12-8"/></svg></div><div class="item-name">开心跳</div></button>
+      <button class="action-item" onclick="playAction(this,'action-wave','送给你一颗小心心')"><div class="item-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M32 50S12 39 12 24c0-10 13-13 20-3 7-10 20-7 20 3 0 15-20 26-20 26Z"/></svg></div><div class="item-name">比心</div></button>
+      <button class="action-item" onclick="playAction(this,'action-sleep','嘘，它开始做嫩芽梦了')"><div class="item-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 46h36M21 46c-5-13 3-25 17-25 9 0 15 7 15 16 0 3-1 6-3 9"/><path d="M26 31c2 2 4 2 6 0M38 31c2 2 4 2 6 0M44 14h8l-8 8h8"/></svg></div><div class="item-name">睡觉</div></button>
+    </div>
+  </section>
+
+  <!-- ============ 宠物投喂 ============ -->
+  <section class="screen pet-screen" id="pet-feed">
+    <div class="pet-head rise d1"><button class="pet-back" onclick="go('pet')" aria-label="返回宠物页"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 5-7 7 7 7"/></svg></button><h2 class="font-display">投喂</h2><div class="leaf-balance"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4C12 4 7 7 6 15c4-2 7-3 11-7-3.4 4.4-6.6 6.7-11 8-.2 1.7.1 3.3.7 4.5l2-.8c-.5-1-.7-2-.6-3C17 15.5 21 10.5 20 4Z"/></svg><span class="currency-label">丰容点</span><span class="currency-value">120</span></div></div>
+    <div class="feed-stage rise d2"><svg class="feed-heart" width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21S3 16 3 9.5C3 5 9 3.5 12 8c3-4.5 9-3 9 1.5C21 16 12 21 12 21Z"/></svg><img class="pet-main" id="feedPet" src="assets/sprout-pet.png" alt="等待投喂的嫩芽小兽"></div>
+    <div class="feed-title font-display rise d3">我的道具</div>
+    <div class="feed-grid rise d4">
+      <button class="feed-item" onclick="buyFood('薄荷叶',4,10)"><div class="item-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 44c2-16 12-26 34-29-2 20-13 31-34 29Z"/><path d="M17 42c11-8 20-14 30-24"/></svg></div><div class="item-name">薄荷叶</div><div class="item-price">丰容点 4 · +10经验</div></button>
+      <button class="feed-item" onclick="buyFood('草莓果',8,20)"><div class="item-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 24c0 18 8 28 14 32 7-4 15-14 15-32-8-5-21-5-29 0Z"/><path d="M25 22c0-6 4-10 7-12 1 6 7 8 12 9-7 1-13 3-19 3Z"/><path d="M26 31h.1M37 30h.1M31 41h.1M39 40h.1"/></svg></div><div class="item-name">草莓果</div><div class="item-price">丰容点 8 · +20经验</div></button>
+      <button class="feed-item" onclick="buyFood('鲜牛奶',12,30)"><div class="item-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 13h20l4 10v31H18V23l4-10Z"/><path d="M22 13V8h20v5M18 23h28M27 35c3-5 7-5 10 0-3 6-7 6-10 0Z"/></svg></div><div class="item-name">鲜牛奶</div><div class="item-price">丰容点 12 · +30经验</div></button>
+      <button class="feed-item" onclick="buyFood('小蛋糕',18,50)"><div class="item-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 34h36v20H14zM12 31c6-8 10-1 15-6 5 5 11-2 15 5 3-2 7-1 10 4H12Z"/><path d="M32 25v-8M28 17c2-5 6-6 8 0"/></svg></div><div class="item-name">小蛋糕</div><div class="item-price">丰容点 18 · +50经验</div></button>
+    </div>
+  </section>
+
+  <!-- ============ ⑤ Challenge 挑战页 ============ -->
+  <section class="screen" id="challenge">
+    <svg class="sparkle twinkle" style="top:12%;right:10%;color:var(--lilac-deep)" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C12.6 8 14 10 22 12 14 14 12.6 16 12 22 11.4 16 10 14 2 12 10 10 11.4 8 12 2Z"/></svg>
+    <svg class="sparkle twinkle" style="top:34%;left:4%;color:var(--peach);animation-delay:.8s" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C12.6 8 14 10 22 12 14 14 12.6 16 12 22 11.4 16 10 14 2 12 10 10 11.4 8 12 2Z"/></svg>
+
+    <header class="challenge-head">
+      <button class="challenge-back" type="button" onclick="go('home')" aria-label="返回首页">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg>
+      </button>
+      <div class="challenge-eyebrow"><span>今日挑战</span><span class="challenge-step">05</span></div>
+    </header>
+
+    <div class="challenge-stage">
+      <div class="challenge-panel active" id="challengeQuestionPanel" data-panel="question">
+        <h2 class="challenge-title font-display">给自己一个<br>小问题</h2>
+        <p class="challenge-sub">没有标准答案，留空也可以。<br>只是为今天挑一件更合适的小行动。</p>
+        <div class="challenge-note">
+          <p class="challenge-question" id="challengeQuestion"></p>
+          <div class="challenge-input-wrap">
+            <textarea class="challenge-input" id="challengeAnswer" maxlength="240" aria-label="回答今天的小问题"></textarea>
+            <span class="challenge-count" id="challengeCount" aria-hidden="true">0 / 240</span>
+          </div>
+        </div>
+        <div class="challenge-actions">
+          <button class="btn-ghost challenge-swap" type="button" onclick="swapChallengeQuestion()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>
+            换一个问题
+          </button>
+          <button class="btn-ink" type="button" onclick="submitChallengeAnswer()">
+            看看今天的挑战
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M14 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="challenge-panel" id="challengeTaskPanel" data-panel="task_preview">
+        <span class="generated-stamp">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c.7 4.5 2 5.8 6.5 6.5-4.5.7-5.8 2-6.5 6.5-.7-4.5-2-5.8-6.5-6.5C10 8.8 11.3 7.5 12 3Z"/></svg>
+          为你挑好了
+        </span>
+        <div class="challenge-note challenge-task-paper">
+          <div class="challenge-task-top">
+            <h2 class="challenge-task-title font-display" id="generatedTask"></h2>
+            <div class="challenge-duration"><strong id="generatedDuration">2</strong><span>分钟</span></div>
+          </div>
+          <p class="challenge-reason"><span class="challenge-reason-label">给你的小提示：</span><span id="generatedReason"></span></p>
+          <div class="challenge-hint-row"><span>不用准备</span><span>慢慢来</span><span>只为今天</span></div>
+        </div>
+        <div class="challenge-actions">
+          <button class="btn-ink" type="button" onclick="startChallenge()">
+            开始挑战
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 9 6-9 6V6Z"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="challenge-panel countdown-panel" id="challengeCountdownPanel" data-panel="countdown">
+        <div class="countdown-summary">
+          <span class="countdown-summary-icon">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M7.5 3h9M12 9v4l2.8 2M19 7l1.5-1.5"/><circle cx="12" cy="14" r="7"/></svg>
+          </span>
+          <p><strong id="countdownTask"></strong><span>这两分钟，只需要待在这里</span></p>
+        </div>
+        <div class="timer-zone" aria-label="挑战倒计时">
+          <div class="timer-ring"></div><div class="timer-blob"></div>
+          <div class="timer-value" id="timerValue">02:00</div>
+          <div class="timer-caption" id="timerCaption">轻轻开始就好</div>
+        </div>
+        <div class="countdown-controls">
+          <button class="btn-ink" id="pauseButton" type="button" onclick="toggleChallengeTimer()">
+            <svg id="pauseIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 6v12M16 6v12"/></svg>
+            <span id="pauseLabel">暂停一下</span>
+          </button>
+          <button class="btn-ghost" id="quickSkipButton" type="button" onclick="completeWithSkip()">跳过</button>
+        </div>
+        <p class="skip-allowance" id="skipAllowance">剩余跳过次数：1</p>
+        <p class="challenge-status" id="challengeStatus" role="status" aria-live="polite">倒计时已经开始</p>
+        <div class="skip-zone">
+          <button class="btn-ghost" id="abandonButton" type="button" onclick="abandonChallenge()">放弃挑战</button>
+        </div>
+      </div>
+
+      <div class="challenge-panel complete-panel" id="challengeCompletePanel" data-panel="completed">
+        <div class="complete-mark">
+          <svg width="54" height="54" viewBox="0 0 54 54" fill="none" stroke="var(--moss-deep)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path id="completeIconPath" d="m16 28 7 7 15-16"/></svg>
+        </div>
+        <h2 class="complete-title font-display" id="completeTitle">今天的小挑战完成啦</h2>
+        <p class="complete-copy" id="completeCopy">不需要做得完美。愿意停下来两分钟，本身就是一件很好的小事。</p>
+        <p class="complete-skip-state" id="completeSkipState"></p>
+        <div class="challenge-actions">
+          <button class="btn-ink" type="button" onclick="go('home')">回到首页</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ⑦ 分享页 ============ -->
+  <section class="screen" id="share">
+    <div class="share-head">
+      <button class="back-btn" onclick="go('challenge')" aria-label="返回">‹</button>
+      <span class="share-step-chip">最 终</span>
+    </div>
+    <h2 class="share-title font-display">今日丰容任务</h2>
+    <p class="share-sub">给生活一点小小的痕迹 <span class="sparkle-inline">✦</span></p>
+
+    <div class="share-card">
+      <div class="card-row1">
+        <div class="logo-text">Glitch<span class="dot">.</span></div>
+        <div class="mascot">
+          <div class="body"></div>
+          <div class="eyes"><span class="eye"></span><span class="eye"></span></div>
+        </div>
+      </div>
+      <div class="polaroid">
+        <label class="photo" id="sharePhotoSlot" for="shareFileInput">
+          <div class="ph-text" id="sharePhotoPh"><span class="cam">📷</span>点 击 上 传 你 的 瞬 间</div>
+          <img id="sharePhotoImg" alt="" style="display:none">
+        </label>
+        <div class="ph-meta">— Glitch Moment —</div>
+      </div>
+      <input type="file" accept="image/*" class="file-input" id="shareFileInput">
+
+      <div class="share-meta">
+        <svg class="meta-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 14.5 C5 11.5 2.5 9.4 2.5 6.8 A5.5 5.5 0 0 1 13.5 6.8 C13.5 9.4 11 11.5 8 14.5 Z"/><circle cx="8" cy="6.5" r="1.6"/></svg>
+        <input type="text" id="shareLoc" value="上海">
+        <span class="meta-sep">·</span>
+        <svg class="meta-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3.2"/><path d="M8 1.5v1.5M8 13v1.5M1.5 8h1.5M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1"/></svg>
+        <input type="text" id="shareWeather" value="30° 阴">
+        <span class="meta-sep">·</span>
+        <svg class="meta-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.2"/><path d="M8 4.5v3.5l2 1.2"/></svg>
+        <input type="text" id="shareTime" value="16:00">
+      </div>
+    </div>
+
+    <div class="share-bottom">
+      <button class="btn-platform btn-save" onclick="saveShareCard()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 5-5m-5 5-5-5M5 21h14"/></svg>
+        保存卡片到本地
+      </button>
+      <button class="btn-platform" onclick="shareTo('wechat')">
+        <svg class="ic-wc" width="22" height="22" viewBox="0 0 32 32" fill="currentColor"><path d="M12.5 4C6.7 4 2 7.9 2 12.7c0 2.7 1.6 5.1 4 6.7l-.8 3 3.3-1.7c1 .3 1.9.4 2.9.4h.6c-.2-.7-.3-1.4-.3-2.2 0-4.5 4.3-8.2 9.7-8.2.6 0 1.2 0 1.8.1C22.4 6.6 17.9 4 12.5 4zM9 9.5c-.8 0-1.4-.6-1.4-1.4S8.2 6.7 9 6.7s1.4.6 1.4 1.4S9.8 9.5 9 9.5zm7 0c-.8 0-1.4-.6-1.4-1.4S15.2 6.7 16 6.7s1.4.6 1.4 1.4S16.8 9.5 16 9.5z"/><path d="M30 19.5c0-3.8-3.7-6.9-8.3-6.9s-8.3 3.1-8.3 6.9 3.7 6.9 8.3 6.9c.8 0 1.6-.1 2.3-.3l2.7 1.4-.7-2.4c2.4-1.4 4-3.7 4-6.6zm-11-1.4c-.6 0-1.1-.5-1.1-1.1s.5-1.1 1.1-1.1 1.1.5 1.1 1.1-.5 1.1-1.1 1.1zm5.5 0c-.6 0-1.1-.5-1.1-1.1s.5-1.1 1.1-1.1 1.1.5 1.1 1.1-.5 1.1-1.1 1.1z"/></svg>
+        分享到微信
+      </button>
+      <button class="btn-platform" onclick="shareTo('douyin')">
+        <svg class="ic-dy" width="22" height="22" viewBox="0 0 32 32" fill="currentColor"><path d="M22.4 4.5c1.4 2.5 3.7 4.2 6.6 4.6v4.6c-2.5 0-4.9-.8-6.9-2.2v9.3c0 4.7-3.8 8.5-8.5 8.5s-8.5-3.8-8.5-8.5 3.8-8.5 8.5-8.5c.4 0 .8 0 1.2.1v4.8c-.4-.1-.8-.2-1.2-.2-2.1 0-3.8 1.7-3.8 3.8s1.7 3.8 3.8 3.8 3.8-1.7 3.8-3.8V4.5h4.7z"/></svg>
+        分享到抖音
+      </button>
+    </div>
+    <div class="toast-lb" id="shareToast">已复制 · 去微信粘贴</div>
+  </section>
+
+  <!-- 完成奖励弹窗 -->
+  <div class="reward-modal" id="rewardModal" aria-hidden="true">
+    <div class="reward-dialog" role="dialog" aria-modal="true" aria-labelledby="rewardHeading">
+      <span class="reward-chip">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c.7 4.5 2 5.8 6.5 6.5-4.5.7-5.8 2-6.5 6.5-.7-4.5-2-5.8-6.5-6.5C10 8.8 11.3 7.5 12 3Z"/></svg>
+        今日奖励
+      </span>
+      <h2 class="reward-heading font-display" id="rewardHeading">小奖励掉进了口袋</h2>
+      <div class="reward-art">
+        <svg width="126" height="96" viewBox="0 0 126 96" fill="none" aria-label="晴空芽芽帽图像">
+          <path d="M25 63C30 33 44 18 63 18s35 16 40 45c-25 12-55 12-78 0Z" fill="var(--moss)" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M14 66c23-10 69-10 98 0-18 20-80 20-98 0Z" fill="var(--moss-mist)" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M62 18c-3-8 1-13 8-15M63 18c8-6 14-5 18 1" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/>
+          <path d="M106 19c.5 4 1.5 5 5.5 5.5-4 .5-5 1.5-5.5 5.5-.5-4-1.5-5-5.5-5.5 4-.5 5-1.5 5.5-5.5Z" fill="var(--peach)"/>
+        </svg>
+      </div>
+      <h3 class="reward-name font-display" id="rewardName">丰容点 +10</h3>
+      <p class="reward-note" id="rewardNote">完成今日挑战获得</p>
+      <div class="reward-actions">
+        <button class="btn-ink" id="useRewardButton" type="button" onclick="useReward()">去使用</button>
+        <button class="btn-ghost" type="button" onclick="closeRewardModal(); go('share')">去分享</button>
+      </div>
+      <p class="reward-swipe-hint">向左滑 · 直接回到首页</p>
+      <div class="share-sheet" id="shareSheet" aria-hidden="true">
+        <h3 class="share-sheet-title font-display">分享今天的小奖励</h3>
+        <div class="share-options">
+          <button class="share-option" type="button" onclick="prepareShare('朋友圈')">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17.5c-2.4-1.2-4-3.4-4-6C3 7.4 6.8 4 11.5 4S20 7.4 20 11.5 16.2 19 11.5 19c-1 0-2-.2-2.9-.5L5 20l2-2.5Z"/><path d="M8 10.5h.1M12 10.5h.1M16 10.5h.1"/></svg>
+            朋友圈
+          </button>
+          <button class="share-option" type="button" onclick="prepareShare('小红书')">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h11a3 3 0 0 1 3 3v12H8a3 3 0 0 1-3-3v-12Z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>
+            小红书
+          </button>
+        </div>
+        <p class="share-feedback" id="shareFeedback" role="status" aria-live="polite"></p>
+        <button class="btn-ghost share-close" type="button" onclick="closeShareOptions()">先不分享</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="petToast" role="status"></div>
+
+  <!-- 演示控制（真机上隐藏，方向键仍可翻页） -->
+  <div class="demo-pager" id="pager">
+    <button onclick="step(-1)" aria-label="上一屏"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="dots">
+      <button class="dp on" onclick="go('splash')" aria-label="屏1"></button>
+      <button class="dp" onclick="go('perm')" aria-label="屏2"></button>
+      <button class="dp" onclick="go('sense')" aria-label="屏3"></button>
+      <button class="dp" onclick="go('home')" aria-label="屏4"></button>
+      <button class="dp" onclick="go('challenge')" aria-label="屏5"></button>
+      <button class="dp" onclick="go('pet')" aria-label="屏6"></button>
+      <button class="dp" onclick="go('profile')" aria-label="屏7"></button>
+    </div>
+    <button onclick="step(1)" aria-label="下一屏"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+  </div>
+</div>
+
+<script src="./challenge-mock.js"></script>
+<script>
+/* ============ 导航 ============ */
+const ORDER = ['splash','perm','sense','home','challenge','pet','profile','share'];
+const phone = document.getElementById('phone');
+let current = 'splash';
+let senseTimer = null;
+
+function go(name) {
+  if (name === current) return;
+  if (senseTimer) { clearTimeout(senseTimer); senseTimer = null; }
+  if (current === 'challenge' && name !== 'challenge') resetChallenge();
+  const prev = document.getElementById(current);
+  const next = document.getElementById(name);
+  if (!next) return;
+  prev.classList.remove('active');
+  prev.classList.add('exit-left');
+  prev.scrollTop = 0;
+  setTimeout(() => prev.classList.remove('exit-left'), 500);
+  next.classList.add('active');
+  current = name;
+  const i = ORDER.indexOf(name);
+  phone.dataset.step = i + 1;
+  phone.classList.toggle('dark', name === 'sense');
+  const isPetScreen = name === 'pet' || name.startsWith('pet-');
+  document.getElementById('tabPet').classList.toggle('on', isPetScreen);
+  document.getElementById('tabProfile').classList.toggle('on', name === 'profile' || name === 'settings');
+  const showTabs = name === 'home' || isPetScreen || name === 'profile';
+  document.getElementById('tabbar').style.opacity = showTabs ? '' : '0';
+  document.getElementById('tabbar').style.pointerEvents = showTabs ? 'auto' : 'none';
+  if (name === 'sense') runSense();
+  if (name === 'home') kickLiveSense(); /* 直接进首页（演示跳转）也要拉真实数据 */
+  if (name === 'challenge') resetChallenge();
+  if (name === 'pet-change') {
+    activeFamily = selectedPet.family;
+    document.querySelectorAll('.pet-family-tab').forEach((tab, index) => tab.classList.toggle('on', index === activeFamily));
+    renderPetForms();
+  }
+  if (name === 'share') populateShareMeta();
+}
+
+function step(dir) {
+  const i = ORDER.indexOf(current);
+  go(ORDER[Math.min(ORDER.length - 1, Math.max(0, i + dir))]);
+}
+
+/* 启动页：轻触任意处进入 */
+document.getElementById('splash').addEventListener('click', e => go('perm'));
+
+/* ============ 授权卡：一键勾选全部 ============ */
+function togglePerm(card) {
+  card.classList.toggle('on');
+  card.style.transform = 'scale(.97)';
+  setTimeout(() => card.style.transform = '', 150);
+}
+function acceptAllPerms() {
+  kickLiveSense(); /* 在用户手势内同步发起传感器/定位/麦克风请求（iOS 要求） */
+  const cards = document.querySelectorAll('#perm .perm-card');
+  cards.forEach((card, i) => setTimeout(() => card.classList.add('on'), i * 110));
+  setTimeout(() => go('sense'), cards.length * 110 + 380);
+}
+
+/* ============ 感知序列 ============ */
+function runSense() {
+  const items = document.querySelectorAll('#senseStatus .sense-item');
+  items.forEach(it => it.classList.remove('show','done'));
+  document.getElementById('senseCta').classList.remove('show');
+  let k = 0;
+  const tick = () => {
+    if (current !== 'sense') return;
+    if (k < items.length) {
+      items[k].classList.add('show');
+      senseTimer = setTimeout(() => {
+        if (current !== 'sense') return;
+        items[k].classList.add('done');
+        k++;
+        tick();
+      }, 900);
+    } else {
+      document.getElementById('senseCta').classList.add('show');
+    }
+  };
+  senseTimer = setTimeout(tick, 600);
+}
+
+/* ============ 星星 ============ */
+(function makeStars() {
+  const wrap = document.getElementById('stars');
+  for (let i = 0; i < 46; i++) {
+    const s = document.createElement('span');
+    s.className = 'star';
+    const size = Math.random() < .8 ? 1.5 : 2.6;
+    s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${size}px;height:${size}px;animation-delay:${(Math.random()*3).toFixed(2)}s;animation-duration:${(2+Math.random()*2.5).toFixed(2)}s;opacity:.7`;
+    wrap.appendChild(s);
+  }
+})();
+
+/* ============ 日期 ============ */
+(function setDate() {
+  const d = new Date();
+  const wd = ['日','一','二','三','四','五','六'][d.getDay()];
+  document.getElementById('todayDate').textContent =
+    `${d.getMonth()+1} 月 ${d.getDate()} 日 · 星期${wd}`;
+})();
+
+/* ============ 心情（已从首页移除，保留以备回滚） ============ */
+function pickMood(btn) {
+  document.querySelectorAll('#moodRow .mood').forEach(m => m.classList.remove('sel'));
+  btn.classList.add('sel');
+  const note = document.getElementById('moodNote');
+  note.textContent = '「 ' + btn.dataset.note + ' 」';
+  note.classList.add('show');
+}
+
+/* ============ 首页 · 今天的小问题 ============ */
+let pendingHomeAnswer = '';
+function updateHomeQuestionUI() {
+  const qEl = document.getElementById('homeQuestion');
+  const aEl = document.getElementById('homeAnswer');
+  const hint = document.querySelector('.home-question-hint');
+  if (!qEl || !aEl) return;
+  if (liveQuestion) {
+    qEl.textContent = liveQuestion.question;
+    qEl.classList.remove('loading');
+    aEl.placeholder = liveQuestion.placeholder || '允许留空';
+    const basis = (liveQuestion.signal_basis || []).map(s => SIGNAL_LABELS[s] || s).join('·');
+    if (hint) hint.textContent = (basis ? `问题基于${basis}生成 · ` : '') + '写完点右边按钮，碎片会自己继续';
+  } else {
+    qEl.textContent = '正在生成今天的小问题…';
+    qEl.classList.add('loading');
+    aEl.placeholder = '';
+    if (hint) hint.textContent = '正在连接后端生成今天的小问题…';
+  }
+  aEl.value = '';
+}
+function renderHomeQuestion() { updateHomeQuestionUI(); }
+function submitHomeAnswer() {
+  const aEl = document.getElementById('homeAnswer');
+  if (!aEl) return;
+  const answer = aEl.value.trim();
+  pendingHomeAnswer = answer;
+  go('challenge');
+  requestLiveTask(answer); /* 真实链路：送答案给 LLM 换任务 */
+}
+
+/* ============ 宠物互动 ============ */
+let toastTimer = null;
+const PET_FAMILIES = [
+  { name:'嫩芽龙', forms:['招手','抱芽','午睡','芽芽帽','花花包','云朵梦'] },
+  { name:'星星云', forms:['初见','眨眼','趴趴','睡帽','耳机','星球舱'] },
+  { name:'橘子豚', forms:['坐坐','躺平','抱橘','泡澡','小鸟伴','橘子梦'] }
+];
+const PET_FILES = ['sprout','cloud','capy'];
+const PET_MAIN_SCALE = [
+  [96,96,94,94,94,92],
+  [94,94,92,92,90,88],
+  [90,88,90,88,84,82]
+];
+let activeFamily = 0;
+let selectedPet = (() => {
+  try { return JSON.parse(localStorage.getItem('glitch-selected-pet')) || { family:0, form:0 }; }
+  catch (_) { return { family:0, form:0 }; }
+})();
+const LEVEL_XP = [100,160,240,360];
+let gameState = (() => {
+  const fallback = { currency:120, pets:[{level:1,xp:0},{level:1,xp:0},{level:1,xp:0}], owned:[], extraStarted:false, extraCompleted:false, extraClaimed:false };
+  try {
+    const saved = JSON.parse(localStorage.getItem('glitch-pet-game'));
+    return saved ? {...fallback, ...saved, pets:saved.pets || fallback.pets, owned:saved.owned || []} : fallback;
+  } catch (_) { return fallback; }
+})();
+function saveGame() { localStorage.setItem('glitch-pet-game', JSON.stringify(gameState)); }
+let userProfile = (() => {
+  try { return JSON.parse(localStorage.getItem('glitch-user-profile')) || {name:'晚安呀！',avatar:null}; }
+  catch (_) { return {name:'晚安呀！',avatar:null}; }
+})();
+let pendingAvatar = userProfile.avatar;
+
+function setSpritePosition(el, family, form, useGrowth=false) {
+  const petState = gameState.pets[family] || {level:1,xp:0};
+  const growth = useGrowth && form === 0;
+  el.style.backgroundImage = growth
+    ? `url('assets/growth/${PET_FILES[family]}-lv${petState.level}.png?v=1')`
+    : `url('assets/pet-forms/${PET_FILES[family]}-${form + 1}-v5.png')`;
+  if (el.classList.contains('pet-main-sprite')) {
+    el.style.backgroundSize = growth ? '100%' : `${PET_MAIN_SCALE[family][form]}%`;
+    el.style.backgroundPosition = 'center calc(100% + 10px)';
+  } else {
+    el.style.backgroundSize = 'contain';
+    el.style.backgroundPosition = 'center';
+  }
+}
+function ensureSceneSprite(imageId, spriteId) {
+  const image = document.getElementById(imageId);
+  let sprite = document.getElementById(spriteId);
+  if (!sprite) {
+    sprite = document.createElement('div');
+    sprite.id = spriteId;
+    sprite.className = 'pet-sprite pet-main-sprite';
+    sprite.setAttribute('role','img');
+    image.insertAdjacentElement('afterend', sprite);
+  }
+  image.classList.add('is-hidden');
+  return sprite;
+}
+function applySelectedPet() {
+  if (selectedPet.form > 0 && gameState.pets[selectedPet.family].level < 5) {
+    selectedPet.form = 0;
+    localStorage.setItem('glitch-selected-pet', JSON.stringify(selectedPet));
+  }
+  const { family, form } = selectedPet;
+  const homeSprite = document.getElementById('selectedPetSprite');
+  document.getElementById('petMain').classList.add('is-hidden');
+  homeSprite.classList.remove('is-hidden');
+  setSpritePosition(homeSprite, family, form, true);
+  const actionSprite = ensureSceneSprite('actionPet','actionPetSprite');
+  const feedSprite = ensureSceneSprite('feedPet','feedPetSprite');
+  setSpritePosition(actionSprite, family, form, true);
+  setSpritePosition(feedSprite, family, form, true);
+  const avatar = document.querySelector('.pet-avatar');
+  avatar.querySelector('img').style.display = 'none';
+  let avatarSprite = avatar.querySelector('.pet-sprite');
+  if (!avatarSprite) { avatarSprite = document.createElement('span'); avatarSprite.className = 'pet-sprite'; avatar.appendChild(avatarSprite); }
+  setSpritePosition(avatarSprite, family, form, true);
+  setSpritePosition(document.getElementById('profilePetSprite'), family, form, true);
+  setSpritePosition(document.getElementById('editorPetSprite'), family, form, true);
+  document.querySelector('.pet-name').textContent = PET_FAMILIES[family].name;
+  updateEconomyUI();
+  applyUserProfile();
+}
+function updateEconomyUI() {
+  document.querySelectorAll('.currency-value').forEach(el => el.textContent = gameState.currency);
+  const state = gameState.pets[selectedPet.family];
+  document.getElementById('petLevelText').textContent = `Lv.${state.level}`;
+  const max = state.level >= 5;
+  const need = max ? 0 : LEVEL_XP[state.level - 1];
+  document.getElementById('petXpBar').style.width = max ? '100%' : `${Math.min(100, state.xp / need * 100)}%`;
+  document.getElementById('testLevel').value = state.level;
+  document.getElementById('testCurrency').value = gameState.currency;
+  document.getElementById('ownedCount').textContent = gameState.owned.length;
+  const reward = document.getElementById('extraTaskReward');
+  reward.classList.toggle('claimed', !!gameState.extraClaimed);
+  reward.classList.toggle('locked', !gameState.extraCompleted || !!gameState.extraClaimed);
+  document.getElementById('extraTaskProgress').textContent = gameState.extraCompleted ? '1/1' : '0/1';
+  document.getElementById('extraTaskBar').style.width = gameState.extraCompleted ? '100%' : '0';
+  document.getElementById('extraRewardLine').textContent = gameState.extraClaimed ? '奖励已领取' : gameState.extraCompleted ? '已完成，点击礼物领取奖励' : '奖励：经验 +30 · 丰容点 +12';
+}
+function toggleTestPanel() { document.getElementById('testPanel').classList.toggle('show'); }
+function applyTestSettings() {
+  const level = Math.max(1, Math.min(5, Number(document.getElementById('testLevel').value) || 1));
+  const currency = Math.max(0, Math.min(999999, Math.floor(Number(document.getElementById('testCurrency').value) || 0)));
+  const state = gameState.pets[selectedPet.family];
+  state.level = level;
+  state.xp = 0;
+  gameState.currency = currency;
+  saveGame();
+  applySelectedPet();
+  const pet = document.getElementById('selectedPetSprite');
+  pet.classList.remove('level-up');
+  void pet.offsetWidth;
+  pet.classList.add('level-up');
+  document.getElementById('testPanel').classList.remove('show');
+  petToast(`测试数据已应用：Lv.${level}，丰容点 ${currency}`);
+}
+function claimExtraTask() {
+  if (!gameState.extraCompleted) { petToast('先完成一次丰容，再来领取奖励'); return; }
+  if (gameState.extraClaimed) { petToast('额外任务奖励已经领取'); return; }
+  const state = gameState.pets[selectedPet.family];
+  gameState.currency += 12;
+  state.xp += 30;
+  let leveled = false;
+  while (state.level < 5 && state.xp >= LEVEL_XP[state.level - 1]) {
+    state.xp -= LEVEL_XP[state.level - 1];
+    state.level++;
+    leveled = true;
+  }
+  if (state.level >= 5) state.xp = 0;
+  gameState.extraClaimed = true;
+  saveGame();
+  applySelectedPet();
+  petToast(leveled ? `额外奖励已领取，升到 Lv.${state.level}！` : '额外奖励：经验 +30，丰容点 +12');
+}
+/* 去丰容：跳转挑战页，完成挑战后回来领奖 */
+function goExtraEnrichment() {
+  gameState.extraStarted = true;
+  saveGame();
+  updateEconomyUI();
+  go('challenge');
+}
+function applyUserProfile() {
+  document.getElementById('profileName').textContent = userProfile.name;
+  const custom = document.getElementById('profileCustomAvatar');
+  const petAvatar = document.getElementById('profilePetSprite');
+  if (userProfile.avatar) {
+    custom.src = userProfile.avatar;
+    custom.style.display = 'block';
+    petAvatar.style.display = 'none';
+  } else {
+    custom.removeAttribute('src');
+    custom.style.display = 'none';
+    petAvatar.style.display = 'block';
+  }
+}
+function renderEditorAvatar() {
+  const custom = document.getElementById('editorAvatarPreview');
+  const petAvatar = document.getElementById('editorPetSprite');
+  if (pendingAvatar) {
+    custom.src = pendingAvatar;
+    custom.style.display = 'block';
+    petAvatar.style.display = 'none';
+  } else {
+    custom.removeAttribute('src');
+    custom.style.display = 'none';
+    petAvatar.style.display = 'block';
+  }
+}
+function openProfileEditor() {
+  pendingAvatar = userProfile.avatar;
+  document.getElementById('profileNameInput').value = userProfile.name;
+  document.getElementById('avatarFile').value = '';
+  renderEditorAvatar();
+  document.getElementById('profileEditor').classList.add('show');
+  setTimeout(() => document.getElementById('profileNameInput').focus(), 250);
+}
+function closeProfileEditor(event) {
+  if (event && event.target !== document.getElementById('profileEditor')) return;
+  document.getElementById('profileEditor').classList.remove('show');
+}
+function usePetAsAvatar() { pendingAvatar = null; renderEditorAvatar(); }
+function previewAvatarFile(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { petToast('请选择图片文件'); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const image = new Image();
+    image.onload = () => {
+      const size = Math.min(image.naturalWidth, image.naturalHeight);
+      const sx = (image.naturalWidth - size) / 2;
+      const sy = (image.naturalHeight - size) / 2;
+      const canvas = document.createElement('canvas');
+      canvas.width = 256; canvas.height = 256;
+      canvas.getContext('2d').drawImage(image, sx, sy, size, size, 0, 0, 256, 256);
+      pendingAvatar = canvas.toDataURL('image/jpeg', .86);
+      renderEditorAvatar();
+    };
+    image.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+function saveProfileChanges() {
+  const name = document.getElementById('profileNameInput').value.trim();
+  if (!name) { petToast('用户名称不能为空'); return; }
+  userProfile = {name:name.slice(0,12), avatar:pendingAvatar};
+  localStorage.setItem('glitch-user-profile', JSON.stringify(userProfile));
+  applyUserProfile();
+  closeProfileEditor();
+  petToast('个人资料已保存');
+}
+function showPetFamily(btn, family) {
+  activeFamily = family;
+  document.querySelectorAll('.pet-family-tab').forEach(tab => tab.classList.remove('on'));
+  btn.classList.add('on');
+  renderPetForms();
+}
+function renderPetForms() {
+  const grid = document.getElementById('petFormGrid');
+  grid.innerHTML = '';
+  PET_FAMILIES[activeFamily].forms.forEach((name, form) => {
+    const locked = form > 0 && gameState.pets[activeFamily].level < 5;
+    const card = document.createElement('button');
+    card.className = 'form-card' + (locked ? ' locked' : '') + (selectedPet.family === activeFamily && selectedPet.form === form && !locked ? ' selected' : '');
+    card.innerHTML = `<span class="form-check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 12 4 4 10-10"/></svg></span><span class="pet-sprite" aria-hidden="true"></span><span class="form-name">${name}</span><span class="form-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Lv.5 后解锁</span>`;
+    setSpritePosition(card.querySelector('.pet-sprite'), activeFamily, form, false);
+    card.addEventListener('click', () => locked ? petToast('该形象将在 Lv.5 解锁') : selectPet(activeFamily, form));
+    grid.appendChild(card);
+  });
+}
+function selectPet(family, form) {
+  selectedPet = { family, form };
+  localStorage.setItem('glitch-selected-pet', JSON.stringify(selectedPet));
+  applySelectedPet();
+  renderPetForms();
+  petToast(`已换成「${PET_FAMILIES[family].name} · ${PET_FAMILIES[family].forms[form]}」`);
+}
+function petToast(message) {
+  const el = document.getElementById('petToast');
+  el.textContent = message;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 1500);
+}
+function filterShop(btn, cat) {
+  document.querySelectorAll('.category-tab').forEach(tab => tab.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('#shopGrid .shop-item').forEach(item => {
+    item.style.display = cat === 'all' || item.dataset.cat === cat ? '' : 'none';
+  });
+}
+function spendCurrency(price) {
+  if (gameState.currency < price) { petToast(`丰容点不足，还差 ${price - gameState.currency}`); return false; }
+  gameState.currency -= price;
+  saveGame();
+  updateEconomyUI();
+  return true;
+}
+function buyItem(name, price) {
+  if (gameState.owned.includes(name)) { petToast(`「${name}」已经拥有啦`); return; }
+  if (!spendCurrency(price)) return;
+  gameState.owned.push(name);
+  saveGame();
+  petToast(`购买成功：${name}，丰容点 -${price}`);
+}
+function playAction(btn, cls, note) {
+  document.querySelectorAll('.action-item').forEach(item => item.classList.remove('active'));
+  btn.classList.add('active');
+  const pet = document.getElementById('actionPetSprite') || document.getElementById('actionPet');
+  pet.className = pet.id === 'actionPetSprite' ? 'pet-sprite pet-main-sprite' : 'pet-main';
+  void pet.offsetWidth;
+  pet.classList.add(cls);
+  document.getElementById('actionNote').textContent = note;
+}
+function buyFood(name, price, xp) {
+  if (!spendCurrency(price)) return;
+  const pet = document.getElementById('feedPetSprite') || document.getElementById('feedPet');
+  pet.classList.remove('action-hop');
+  void pet.offsetWidth;
+  pet.classList.add('action-hop');
+  addPetXp(xp, name, price);
+}
+function addPetXp(amount, foodName, price) {
+  const state = gameState.pets[selectedPet.family];
+  if (state.level >= 5) { petToast(`已购买${foodName}，宠物已经长大啦`); return; }
+  state.xp += amount;
+  let leveled = false;
+  while (state.level < 5 && state.xp >= LEVEL_XP[state.level - 1]) {
+    state.xp -= LEVEL_XP[state.level - 1];
+    state.level++;
+    leveled = true;
+  }
+  if (state.level >= 5) state.xp = 0;
+  saveGame();
+  applySelectedPet();
+  if (leveled) {
+    const pet = document.getElementById('feedPetSprite');
+    pet.classList.remove('level-up');
+    void pet.offsetWidth;
+    pet.classList.add('level-up');
+    petToast(`长大啦！升到 Lv.${state.level}`);
+  } else {
+    petToast(`购买并投喂${foodName}，丰容点 -${price}，经验 +${amount}`);
+  }
+}
+
+/* ============ Challenge（挑战流程） ============ */
+/* 故事化问题池：支持「换一个问题」 */
+const CHALLENGE_QUESTIONS = [
+  { question: '如果此刻你能给自己泡一杯茶或咖啡，你最想放什么进去？', placeholder: '比如：一颗糖，一点奶，或什么也不加' },
+  { question: '今天有没有一个瞬间，你想把时间轻轻按一下暂停？', placeholder: '比如：等红灯的时候，电梯门打开之前' },
+  { question: '如果睡前多出半小时，只属于你自己，你会用来做什么？', placeholder: '比如：发一会儿呆，翻两页书' },
+  { question: '最近一次让你笑出声的小事是什么？', placeholder: '哪怕很小很小，比如一只路过的猫' },
+  { question: '如果不用说话就能让心情好一点，你想做件什么小事？', placeholder: '比如：把椅子搬到窗边' },
+  { question: '此刻你的窗外，最可能看到什么？', placeholder: '比如：一盏路灯，一片还没暗透的天' }
+];
+let questionIdx = 0;
+function currentQuestion() { return CHALLENGE_QUESTIONS[questionIdx]; }
+let questionSwapping = false;
+async function swapChallengeQuestion() {
+  if (questionSwapping) return;
+  questionSwapping = true;
+  const finish = () => setTimeout(() => { questionSwapping = false; }, 400);
+  try {
+    /* 优先让后端 LLM 现生成一个新问题 */
+    if (liveState) {
+      try {
+        const q = await apiPost('/profile-question', { state: liveState }, 9000);
+        liveQuestion = q;
+        applyLiveQuestion();
+        animateQuestionIn();
+        finish();
+        return;
+      } catch { /* 后端不可用 → 本地池轮换 */ }
+    }
+    questionIdx = (questionIdx + 1) % CHALLENGE_QUESTIONS.length;
+    const q = currentQuestion();
+    document.getElementById('challengeQuestion').textContent = q.question;
+    document.getElementById('challengeAnswer').placeholder = q.placeholder;
+    const homeQ = document.getElementById('homeQuestion');
+    if (homeQ) homeQ.textContent = q.question;
+    const homeA = document.getElementById('homeAnswer');
+    if (homeA) homeA.placeholder = q.placeholder;
+    animateQuestionIn();
+  } finally { finish(); }
+}
+function animateQuestionIn() {
+  const target = document.getElementById('challengeQuestion');
+  target.style.animation = 'none';
+  void target.offsetWidth;
+  target.style.animation = 'challengeIn .4s cubic-bezier(.2,.8,.3,1) both';
+}
+
+let challengeTask = window.CHALLENGE_MOCKS.task;
+const challengeReward = window.CHALLENGE_MOCKS.reward;
+let hasHandoff = false;
+try {
+  const handoff = JSON.parse(sessionStorage.getItem('glitch-challenge-task') || 'null');
+  if (handoff && handoff.task) {
+    hasHandoff = true;
+    challengeTask = { task: handoff.task.task, reason: handoff.task.reason, duration_minutes: handoff.task.duration_minutes };
+    if (handoff.question) CHALLENGE_QUESTIONS.unshift({ question: handoff.question.question || String(handoff.question), placeholder: handoff.question.placeholder || '' });
+  }
+} catch (_) {
+  // 直接打开页面时继续使用本地演示数据。
+}
+let challengePanel = 'question';
+let challengeSeconds = challengeTask.duration_minutes * 60;
+let challengeTimer = null;
+let challengeRunning = false;
+let challengeSkips = 1;
+let challengeSettled = false;
+let challengeAnswer = '';
+let rewardPointerStart = null;
+
+function setChallengePanel(name) {
+  challengePanel = name;
+  document.querySelectorAll('#challenge .challenge-panel').forEach(panel => {
+    panel.classList.toggle('active', panel.dataset.panel === name);
+  });
+  document.getElementById('challenge').scrollTop = 0;
+}
+
+function resetChallenge() {
+  stopChallengeTimer();
+  closeRewardModal();
+  challengePanel = 'question';
+  challengeSeconds = challengeTask.duration_minutes * 60;
+  challengeRunning = false;
+  challengeSkips = 1;
+  challengeSettled = false;
+  challengeAnswer = '';
+
+  const answer = document.getElementById('challengeAnswer');
+  answer.value = pendingHomeAnswer;
+  document.getElementById('challengeCount').textContent = `${answer.value.length} / 240`;
+  const q = liveQuestion; /* 真实 LLM 问题未到 → 挑战页问题区显示加载中，绝不预填静态池 */
+  if (q) {
+    document.getElementById('challengeQuestion').textContent = q.question;
+    document.getElementById('challengeQuestion').classList.remove('loading');
+    answer.placeholder = q.placeholder;
+  } else {
+    document.getElementById('challengeQuestion').textContent = '正在生成今天的小问题…';
+    document.getElementById('challengeQuestion').classList.add('loading');
+    answer.placeholder = '';
+  }
+  updateHomeQuestionUI();
+  document.getElementById('generatedTask').textContent = challengeTask.task;
+  document.getElementById('generatedReason').textContent = challengeTask.reason;
+  document.getElementById('generatedDuration').textContent = challengeTask.duration_minutes;
+  document.getElementById('countdownTask').textContent = challengeTask.task;
+  document.getElementById('quickSkipButton').disabled = false;
+  document.getElementById('skipAllowance').textContent = '剩余跳过次数：1';
+  document.getElementById('challengeStatus').textContent = '倒计时已经开始';
+  document.getElementById('pauseLabel').textContent = '暂停一下';
+  document.getElementById('pauseIcon').innerHTML = '<path d="M8 6v12M16 6v12"/>';
+  document.getElementById('timerCaption').textContent = '轻轻开始就好';
+  updateTimerDisplay();
+  setChallengePanel(pendingHomeAnswer ? 'task_preview' : 'question');
+  pendingHomeAnswer = '';
+}
+
+document.getElementById('challengeAnswer').addEventListener('input', event => {
+  document.getElementById('challengeCount').textContent = `${event.target.value.length} / 240`;
+});
+
+function submitChallengeAnswer() {
+  const answer = document.getElementById('challengeAnswer');
+  challengeAnswer = answer.value;
+  setChallengePanel('task_preview');
+  requestLiveTask(challengeAnswer); /* 真实链路：送答案给 LLM 换任务 */
+  challengeAnswer = '';
+  answer.value = '';
+  document.getElementById('challengeCount').textContent = '0 / 240';
+}
+
+function startChallenge() {
+  challengeSeconds = challengeTask.duration_minutes * 60;
+  challengeRunning = true;
+  setChallengePanel('countdown');
+  updateTimerDisplay();
+  startChallengeTimer();
+}
+
+function startChallengeTimer() {
+  stopChallengeTimer();
+  if (!challengeRunning || challengeSettled) return;
+  challengeTimer = window.setInterval(() => {
+    if (challengeSeconds <= 1) {
+      challengeSeconds = 0;
+      updateTimerDisplay();
+      finishChallenge('done');
+      return;
+    }
+    challengeSeconds -= 1;
+    updateTimerDisplay();
+  }, 1000);
+}
+
+function stopChallengeTimer() {
+  if (challengeTimer) window.clearInterval(challengeTimer);
+  challengeTimer = null;
+}
+
+function updateTimerDisplay() {
+  const minutes = Math.floor(challengeSeconds / 60).toString().padStart(2, '0');
+  const seconds = (challengeSeconds % 60).toString().padStart(2, '0');
+  document.getElementById('timerValue').textContent = `${minutes}:${seconds}`;
+}
+
+function toggleChallengeTimer() {
+  if (challengeSettled || challengePanel !== 'countdown') return;
+  challengeRunning = !challengeRunning;
+  if (challengeRunning) {
+    document.getElementById('pauseLabel').textContent = '暂停一下';
+    document.getElementById('pauseIcon').innerHTML = '<path d="M8 6v12M16 6v12"/>';
+    document.getElementById('timerCaption').textContent = '轻轻开始就好';
+    document.getElementById('challengeStatus').textContent = '继续倒计时';
+    startChallengeTimer();
+  } else {
+    stopChallengeTimer();
+    document.getElementById('pauseLabel').textContent = '继续挑战';
+    document.getElementById('pauseIcon').innerHTML = '<path d="m9 6 9 6-9 6V6Z"/>';
+    document.getElementById('timerCaption').textContent = '停一下也没关系';
+    document.getElementById('challengeStatus').textContent = '挑战已暂停';
+  }
+}
+
+function completeWithSkip() {
+  if (challengeSkips < 1 || challengeSettled) return;
+  challengeSkips = 0;
+  document.getElementById('quickSkipButton').disabled = true;
+  document.getElementById('skipAllowance').textContent = '剩余跳过次数：0';
+  finishChallenge('done');
+}
+
+function abandonChallenge() {
+  if (challengeSettled) return;
+  challengeSkips = 0;
+  document.getElementById('quickSkipButton').disabled = true;
+  document.getElementById('skipAllowance').textContent = '剩余跳过次数：0';
+  finishChallenge('skipped');
+}
+
+function finishChallenge(result) {
+  if (challengeSettled) return;
+  challengeSettled = true;
+  challengeRunning = false;
+  stopChallengeTimer();
+  challengeAnswer = '';
+
+  const skipped = result === 'skipped';
+  document.getElementById('completeTitle').textContent = skipped ? '这次先放下，也没关系' : '今天的小挑战完成啦';
+  document.getElementById('completeCopy').textContent = skipped
+    ? '照顾自己的节奏也很重要。等你想试的时候，我们再挑一件轻轻的小事。'
+    : '不需要做得完美。愿意停下来两分钟，本身就是一件很好的小事。';
+  document.getElementById('completeSkipState').textContent = skipped ? '剩余跳过次数：0' : '';
+  document.getElementById('completeIconPath').setAttribute('d', skipped ? 'M18 18l18 18M36 18 18 36' : 'm16 28 7 7 15-16');
+
+  setChallengePanel('completed');
+  if (!skipped) {
+    /* 完成挑战：结算额外任务进度 */
+    if (gameState.extraStarted) {
+      gameState.extraStarted = false;
+      gameState.extraCompleted = true;
+      gameState.extraClaimed = false;
+      saveGame();
+      updateEconomyUI();
+    }
+    confetti();
+    openRewardModal();
+  }
+}
+
+function openRewardModal() {
+  document.getElementById('rewardName').textContent = '丰容点 +10';
+  document.getElementById('rewardNote').textContent = '完成今日挑战获得';
+  const modal = document.getElementById('rewardModal');
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden', 'false');
+  document.getElementById('useRewardButton').focus();
+}
+
+function closeRewardModal() {
+  const modal = document.getElementById('rewardModal');
+  modal.classList.remove('show');
+  modal.setAttribute('aria-hidden', 'true');
+  closeShareOptions();
+}
+
+/* 去使用：领奖励并跳转到宠物页 */
+function useReward() {
+  gameState.currency += 10;
+  saveGame();
+  updateEconomyUI();
+  closeRewardModal();
+  go('pet');
+  petToast('丰容点 +10 已入账，去宠物页看看吧');
+}
+
+function openShareOptions() {
+  const sheet = document.getElementById('shareSheet');
+  sheet.classList.add('show');
+  sheet.setAttribute('aria-hidden', 'false');
+  document.getElementById('shareFeedback').textContent = '';
+}
+
+function closeShareOptions() {
+  const sheet = document.getElementById('shareSheet');
+  sheet.classList.remove('show');
+  sheet.setAttribute('aria-hidden', 'true');
+  document.getElementById('shareFeedback').textContent = '';
+}
+
+function prepareShare(channel) {
+  document.getElementById('shareFeedback').textContent = `${channel}分享卡片已准备好`;
+}
+
+function exitRewardToHome() {
+  closeRewardModal();
+  go('home');
+}
+
+document.getElementById('rewardModal').addEventListener('pointerdown', event => {
+  rewardPointerStart = { x:event.clientX, y:event.clientY };
+});
+
+document.getElementById('rewardModal').addEventListener('pointerup', event => {
+  if (!rewardPointerStart) return;
+  const dx = event.clientX - rewardPointerStart.x;
+  const dy = event.clientY - rewardPointerStart.y;
+  rewardPointerStart = null;
+  if (dx < -70 && Math.abs(dx) > Math.abs(dy) * 1.2) exitRewardToHome();
+});
+
+/* ============ 彩纸 ============ */
+function confetti() {
+  const colors = ['#94B94E','#B7A5E3','#F0BE93','#35322B','#E4EDCF'];
+  const anchor = (document.querySelector('.tab-fab') || phone).getBoundingClientRect();
+  const originX = anchor.left + anchor.width / 2;
+  const originY = document.querySelector('.tab-fab') ? anchor.top : anchor.top + 120;
+  for (let i = 0; i < 26; i++) {
+    const c = document.createElement('span');
+    c.className = 'confetti';
+    c.style.cssText = `left:${originX + (Math.random()*90-45)}px;top:${originY}px;background:${colors[i%colors.length]};animation-delay:${(Math.random()*.25).toFixed(2)}s;transform:rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 1800);
+  }
+}
+
+/* ============ 真实数据链路（后端 FastAPI + DeepSeek + 高德） ============ */
+const API_BASE = (() => {
+  if (location.protocol === 'file:') return 'http://127.0.0.1:8000';
+  if (location.hostname === '127.0.0.1' || location.hostname === 'localhost') return 'http://127.0.0.1:8000';
+  return '/api';
+})();
+const SIGNAL_LABELS = { weather:'天气', temperature:'气温', environment_noise:'声音环境', motion_state:'动作状态', activity_state:'活动状态', city:'所在城市', time:'时间', platform:'平台', browser:'浏览器' };
+const PROFILE_TAG_LABELS = { low_mood_or_low_expression:'轻松低强度', answer_grounded:'基于你的回答', playful_unpredictable:'天马行空型' };
+let liveState = null;    /* 传感器 + 位置状态（发给后端的 state） */
+let liveContext = null;  /* /location-context 结果 */
+let liveQuestion = null; /* /profile-question 结果 */
+let liveTask = null;     /* /enrichment-task 结果 */
+let liveTaskLoading = false;
+const liveEngine = { started:false };
+
+async function apiPost(path, body, timeoutMs = 12000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify(body),
+      signal: ctrl.signal,
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } finally { clearTimeout(timer); }
+}
+
+function buildFallbackState() {
+  const now = new Date();
+  return {
+    timestamp: now.toISOString(),
+    platform: /Android/i.test(navigator.userAgent) ? 'Android' : 'Web',
+    browser: navigator.userAgent.includes('Chrome') ? 'Chrome' : 'Browser',
+    motion_state: 'still',
+    environment_noise: 'quiet',
+    activity_state: 'likely_resting',
+    city: '',
+  };
+}
+function requestMotionPermission() {
+  const Motion = window.DeviceMotionEvent;
+  const Orientation = window.DeviceOrientationEvent;
+  const promises = [];
+  if (Motion && typeof Motion.requestPermission === 'function') promises.push(Motion.requestPermission());
+  if (Orientation && typeof Orientation.requestPermission === 'function') promises.push(Orientation.requestPermission());
+  return promises.length ? Promise.allSettled(promises) : Promise.resolve([]);
+}
+function getLocationOnce() {
+  if (!navigator.geolocation) return Promise.resolve({ coords:null, reason:'当前浏览器不支持定位' });
+  return new Promise(resolve => navigator.geolocation.getCurrentPosition(
+    pos => resolve({ coords:pos.coords, reason:null }),
+    err => resolve({ coords:null, reason: err.code === err.PERMISSION_DENIED ? '定位权限未授权' : '暂时无法获取定位' }),
+    { enableHighAccuracy:false, timeout:8000, maximumAge:300000 },
+  ));
+}
+async function sampleAudioDb() {
+  if (!navigator.mediaDevices?.getUserMedia) return null;
+  let stream, context;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio:true });
+    context = new AudioContext();
+    const source = context.createMediaStreamSource(stream);
+    const analyser = context.createAnalyser();
+    analyser.fftSize = 1024;
+    source.connect(analyser);
+    const data = new Uint8Array(analyser.fftSize);
+    await new Promise(r => setTimeout(r, 1200));
+    analyser.getByteTimeDomainData(data);
+    const rms = Math.sqrt(data.reduce((s,v) => s + ((v-128)/128)**2, 0) / data.length);
+    return Math.max(-80, Math.min(0, 20 * Math.log10(Math.max(rms, 0.0001))));
+  } catch { return null; }
+  finally {
+    stream?.getTracks().forEach(t => t.stop());
+    await context?.close().catch(() => {});
+  }
+}
+
+/* 采集传感器 → 拉城市天气 → 拉 LLM 问题；任何一步失败都静默降级到静态兜底 */
+function kickLiveSense() {
+  if (liveEngine.started) return;
+  liveEngine.started = true;
+  const motionPermission = requestMotionPermission(); /* 必须在用户手势内同步发起 */
+  const audioPromise = sampleAudioDb();
+  const geoPromise = getLocationOnce();
+  (async () => {
+    try {
+      const motionValues = [];
+      const motionHandler = e => {
+        const a = e.accelerationIncludingGravity || e.acceleration;
+        if (a && [a.x, a.y, a.z].every(v => typeof v === 'number')) motionValues.push(Math.hypot(a.x, a.y, a.z));
+      };
+      window.addEventListener('devicemotion', motionHandler);
+      await motionPermission;
+      await new Promise(r => setTimeout(r, 900));
+      window.removeEventListener('devicemotion', motionHandler);
+      const mean = motionValues.length ? motionValues.reduce((s,v) => s+v, 0) / motionValues.length : null;
+      const variance = mean == null ? null : motionValues.reduce((s,v) => s + (v-mean)**2, 0) / motionValues.length;
+      const motionState = variance == null ? 'unknown' : variance < 0.08 ? 'still' : variance < 1 ? 'moving' : 'active';
+      const [noiseDb, geoResult] = await Promise.all([audioPromise, geoPromise]);
+      const noiseLevel = noiseDb == null ? 'unknown' : noiseDb < -45 ? 'quiet' : noiseDb < -25 ? 'normal' : 'noisy';
+
+      liveState = {
+        ...buildFallbackState(),
+        motion_state: motionState,
+        environment_noise: noiseLevel,
+        activity_state: motionState === 'still' ? 'likely_resting' : 'active',
+        noise_db: noiseDb == null ? undefined : Number(Math.max(0, 60 + noiseDb).toFixed(1)),
+      };
+      if (geoResult.coords) {
+        liveState.location_accuracy_meter = Number(geoResult.coords.accuracy.toFixed(0));
+        try {
+          liveContext = await apiPost('/location-context', { latitude: geoResult.coords.latitude, longitude: geoResult.coords.longitude }, 10000);
+          applyLiveContext();
+          liveState.city = liveContext.city || undefined;
+          liveState.weather = liveContext.weather || undefined;
+          liveState.temperature = liveContext.temperature || undefined;
+          liveState.wind = liveContext.wind || undefined;
+        } catch { liveContext = null; }
+      }
+      try {
+        liveQuestion = await apiPost('/profile-question', { state: liveState });
+        applyLiveQuestion();
+      } catch { liveQuestion = null; }
+    } catch { /* 全链路失败 → 保持静态演示数据 */ }
+  })();
+}
+
+function applyLiveContext() {
+  if (!liveContext || !liveContext.available) return;
+  const chip = document.querySelector('#home .loc-chip');
+  if (chip) {
+    chip.innerHTML = '<span class="dot"></span>' + (liveContext.city || '当前位置');
+    chip.title = '来自高德实时定位';
+  }
+  if (liveContext.temperature) {
+    const num = document.querySelector('#home .weather-num');
+    if (num) num.innerHTML = liveContext.temperature + '<sup>°</sup>';
+  }
+  if (liveContext.weather) {
+    const desc = document.querySelector('#home .weather-desc');
+    if (desc) desc.textContent = liveContext.weather;
+  }
+  if (liveContext.wind) {
+    const rows = document.querySelectorAll('#home .weather-meta .row b');
+    if (rows[1]) rows[1].textContent = liveContext.wind;
+  }
+  const card = document.querySelector('#home .weather-card');
+  if (card) card.title = `高德实时天气：${liveContext.city || ''} ${liveContext.weather || ''} ${liveContext.temperature || ''}° ${liveContext.wind || ''}`;
+  /* 若分享页已打开，同步更新 meta（location/weather） */
+  if (current === 'share') populateShareMeta();
+}
+function applyLiveQuestion() {
+  if (!liveQuestion) return;
+  const placeholder = liveQuestion.placeholder || '允许留空';
+  document.getElementById('challengeQuestion').textContent = liveQuestion.question;
+  document.getElementById('challengeQuestion').classList.remove('loading');
+  document.getElementById('challengeAnswer').placeholder = placeholder;
+  updateHomeQuestionUI();
+}
+function applyLiveTask() {
+  document.getElementById('generatedTask').textContent = challengeTask.task;
+  document.getElementById('generatedReason').textContent = challengeTask.reason;
+  document.getElementById('generatedDuration').textContent = challengeTask.duration_minutes;
+  document.getElementById('countdownTask').textContent = challengeTask.task;
+  const stamp = document.querySelector('.generated-stamp');
+  if (stamp && liveTask) stamp.title = '任务类型：' + (PROFILE_TAG_LABELS[liveTask.profile_tag] || liveTask.profile_tag);
+}
+/* 用回答换 LLM 任务：进行中显示加载文案，失败自动回填 mock 兜底 */
+async function requestLiveTask(answer) {
+  if (!liveQuestion || !liveState || liveTaskLoading) return;
+  liveTaskLoading = true;
+  try {
+    document.getElementById('generatedTask').textContent = '正在为你挑一件正合适的小事…';
+    document.getElementById('generatedReason').textContent = '结合你的回答与此刻的环境…';
+    const result = await apiPost('/enrichment-task', {
+      state: liveState,
+      question_id: liveQuestion.question_id,
+      question: liveQuestion.question,
+      answer: (answer || '').slice(0, 80),
+    });
+    challengeTask = { task: result.task, reason: result.reason, duration_minutes: result.duration_minutes };
+    liveTask = result;
+  } catch { /* 失败保持 challengeTask 为 mock，下方回填 */ }
+  finally {
+    liveTaskLoading = false;
+    applyLiveTask();
+  }
+}
+
+/* ============ 键盘翻页（演示用） ============ */
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') step(1);
+  if (e.key === 'ArrowLeft') step(-1);
+});
+
+/* ============ 初始化 ============ */
+applySelectedPet();
+renderPetForms();
+renderHomeQuestion();
+resetChallenge();
+/* 后端在线状态 → 启动页角标可见 */
+fetch(`${API_BASE}/health`).then(r => r.ok ? r.json() : null).then(h => {
+  if (h && h.llm_enabled) {
+    const v = document.querySelector('#splash .v');
+    if (v) v.textContent = 'v0.1 · 内测版 · 数据在线';
+    console.log('[Glitch] 后端已连接：LLM ✓ 高德 ' + (h.amap_enabled ? '✓' : '✗'));
+  }
+}).catch(() => { console.log('[Glitch] 后端未连接，运行静态演示模式'); });
+if (hasHandoff) {
+  go('challenge');
+  setChallengePanel('task_preview');
+}
+
+/* ============ ⑦ 分享页（纯 canvas，零外部分享 SDK） ============ */
+let sharePhoto = null;
+/* 用真实数据填 share 页 meta（位置/天气/时间）；fallback 用默认值 */
+function populateShareMeta() {
+  const locEl = document.getElementById('shareLoc');
+  const weaEl = document.getElementById('shareWeather');
+  const tmEl  = document.getElementById('shareTime');
+  if (!locEl || !weaEl || !tmEl) return;
+  if (liveContext && liveContext.city) locEl.value = liveContext.city;
+  if (liveContext && (liveContext.temperature || liveContext.weather)) {
+    const temp = liveContext.temperature ? `${liveContext.temperature}°` : '';
+    const desc = liveContext.weather || '';
+    weaEl.value = [temp, desc].filter(Boolean).join(' ');
+  }
+  const d = new Date();
+  tmEl.value = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+const shareFileInput = document.getElementById('shareFileInput');
+if (shareFileInput) {
+  shareFileInput.addEventListener('change', e => {
+    const f = e.target.files[0]; if (!f) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        sharePhoto = img;
+        const slot = document.getElementById('sharePhotoImg');
+        slot.src = ev.target.result; slot.style.display = 'block';
+        document.getElementById('sharePhotoPh').style.display = 'none';
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(f);
+  });
+}
+function sharePhotoSVG() {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600">
+    <defs><linearGradient id="b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F4E8D6"/><stop offset="1" stop-color="#E2C9A4"/></linearGradient></defs>
+    <rect width="600" height="600" fill="url(#b)"/>
+    <ellipse cx="300" cy="430" rx="220" ry="14" fill="#000" opacity=".08"/>
+    <path d="M230 280 L230 400 Q230 425 255 425 L345 425 Q370 425 370 400 L370 280 Z" fill="#FFFDF7" stroke="#35322B" stroke-width="2.5"/>
+    <path d="M230 280 L370 280 L370 305 Q350 320 300 320 Q250 320 230 305 Z" fill="#E9DFC8" stroke="#35322B" stroke-width="2.5"/>
+    <rect x="278" y="310" width="44" height="60" fill="#F7F1E5" stroke="#35322B" stroke-width="1.8"/>
+    <ellipse cx="300" cy="270" rx="38" ry="6" fill="#9D8067" opacity=".6"/>
+    <path d="M340 295 Q360 305 358 330" stroke="#35322B" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  </svg>`;
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+function loadSharePhotoFallback() {
+  if (!sharePhoto) {
+    const img = new Image();
+    img.onload = () => { sharePhoto = img; };
+    img.src = sharePhotoSVG();
+  }
+}
+function renderShareCanvas() {
+  loadSharePhotoFallback();
+  const W = 720, H = 960;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  const grd = ctx.createLinearGradient(0, 0, 0, H);
+  grd.addColorStop(0, '#EDE9F5'); grd.addColorStop(1, '#E3DDEF');
+  ctx.fillStyle = grd; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(111,148,50,.35)';
+  drawStar(ctx, 540, 110, 8); drawStar(ctx, 80, 200, 6);
+  shareRoundRectFill(ctx, 50, 130, W-100, 660, 28, '#FFFDF7', '#35322B', 2.5);
+  ctx.fillStyle = '#35322B';
+  ctx.font = 'italic 700 56px "Caveat","Times New Roman",serif';
+  ctx.fillText('Glitch.', 88, 218);
+  ctx.beginPath(); ctx.arc(296, 207, 8, 0, Math.PI*2); ctx.fillStyle = '#6F9432'; ctx.fill();
+  shareDrawBlob(ctx, 590, 175, 90, 78);
+  const pcx = W/2, pcy = 440, pw = 420, ph = 380;
+  ctx.save(); ctx.translate(pcx, pcy); ctx.rotate(-0.025);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(-pw/2, -ph/2, pw, ph + 30);
+  if (sharePhoto && sharePhoto.complete && sharePhoto.naturalWidth > 0) {
+    try { ctx.drawImage(sharePhoto, -pw/2+10, -ph/2+10, pw-20, ph-20); }
+    catch(e) { ctx.fillStyle = '#EFE7D6'; ctx.fillRect(-pw/2+10, -ph/2+10, pw-20, ph-20); }
+  } else {
+    ctx.fillStyle = '#EFE7D6';
+    ctx.fillRect(-pw/2+10, -ph/2+10, pw-20, ph-20);
+    ctx.fillStyle = '#B8B1A0'; ctx.font = '14px "Noto Sans SC",sans-serif';
+    ctx.textAlign = 'center'; ctx.fillText('— 你的丰容一刻 —', 0, 0);
+  }
+  ctx.textAlign = 'left';
+  ctx.strokeStyle = 'rgba(0,0,0,.1)'; ctx.lineWidth = 1;
+  ctx.strokeRect(-pw/2, -ph/2, pw, ph + 30);
+  ctx.fillStyle = '#77715F'; ctx.font = '18px "Caveat",cursive';
+  ctx.textAlign = 'center'; ctx.fillText('— Glitch Moment —', 0, ph/2 + 14);
+  ctx.restore();
+  const cap = document.getElementById('shareCaption') ? document.getElementById('shareCaption').value : '';
+  if (cap) {
+    const cardX = 84, cardY = 660, cardW = W-168, cardH = 38;
+    ctx.fillStyle = '#E4EDCF';
+    shareRoundRectFill(ctx, cardX, cardY, cardW, cardH, 14, '#E4EDCF', '#35322B', 1.8);
+    const cx = cardX + 20, cy = cardY + cardH/2;
+    ctx.fillStyle = '#94B94E'; ctx.beginPath(); ctx.arc(cx, cy, 11, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#35322B'; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.arc(cx, cy, 11, 0, Math.PI*2); ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(cx, cy, 2.8, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#35322B';
+    ctx.font = 'italic 500 18px "Playfair Display",Georgia,serif';
+    const textMaxW = cardW - 60;
+    let txt = cap;
+    while (ctx.measureText(txt).width > textMaxW && txt.length > 4) txt = txt.slice(0, -2);
+    if (txt !== cap) txt = txt.slice(0, -1) + '…';
+    ctx.textAlign = 'left';
+    ctx.fillText(txt, cardX + 42, cy + 5);
+  }
+  const loc = document.getElementById('shareLoc').value || '';
+  const wea = document.getElementById('shareWeather').value || '';
+  const tm  = document.getElementById('shareTime').value || '';
+  const parts = [loc,wea,tm].filter(Boolean);
+  if (parts.length) {
+    ctx.textAlign = 'center';
+    ctx.font = 'italic 500 15px "Playfair Display",Georgia,serif';
+    ctx.fillStyle = '#77715F';
+    const txt = parts.join(' · ');
+    ctx.fillText(txt, W/2, 730);
+    ctx.fillStyle = '#94B94E';
+    ctx.beginPath();
+    ctx.arc(W/2 - ctx.measureText(txt).width/2 - 10, 726, 3, 0, Math.PI*2);
+    ctx.fill();
+  }
+  return c;
+}
+function drawStar(ctx, x, y, r) {
+  ctx.beginPath();
+  ctx.moveTo(x, y-r); ctx.lineTo(x+r*.3, y-r*.3); ctx.lineTo(x+r, y);
+  ctx.lineTo(x+r*.3, y+r*.3); ctx.lineTo(x, y+r); ctx.lineTo(x-r*.3, y+r*.3);
+  ctx.lineTo(x-r, y); ctx.lineTo(x-r*.3, y-r*.3); ctx.closePath(); ctx.fill();
+}
+function shareDrawBlob(ctx, cx, cy, w, h) {
+  ctx.save(); ctx.translate(cx, cy);
+  const grad = ctx.createRadialGradient(-w*.15, -h*.2, 2, 0, 0, w);
+  grad.addColorStop(0, '#DCD1F4'); grad.addColorStop(.55, '#B7A5E3'); grad.addColorStop(1, '#8F7BC9');
+  ctx.fillStyle = grad; ctx.strokeStyle = '#35322B'; ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  const hw = w/2, hh = h/2;
+  ctx.moveTo(-hw*.7, -hh);
+  ctx.quadraticCurveTo(hw*.7, -hh, hw, -hh*.7);
+  ctx.quadraticCurveTo(hw*1.05, -hh*.4, hw*.85, hh*.3);
+  ctx.quadraticCurveTo(hw*.5, hh*1.05, hw*.05, hh);
+  ctx.quadraticCurveTo(-hw*.5, hh*1.05, -hw*.9, hh*.2);
+  ctx.quadraticCurveTo(-hw*1.05, -hh*.5, -hw*.7, -hh);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#35322B';
+  ctx.beginPath(); ctx.arc(-w*.12, -h*.05, 3, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(w*.12, -h*.05, 3, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+function shareRoundRectFill(ctx, x, y, w, h, r, fill, stroke, lw) {
+  ctx.fillStyle = fill; ctx.strokeStyle = stroke; ctx.lineWidth = lw;
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y, x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r);
+  ctx.arcTo(x, y, x+w, y, r);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+}
+function saveShareCard() {
+  loadSharePhotoFallback();
+  setTimeout(() => {
+    const c = renderShareCanvas();
+    c.toBlob(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = `glitch-${Date.now()}.png`;
+      document.body.appendChild(a); a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+      shareShowToast('已保存到下载文件夹');
+    });
+  }, 80);
+}
+function shareTo(platform) {
+  loadSharePhotoFallback();
+  if (!navigator.canShare) { shareShowToast('请长按上方卡片保存到相册，再去' + (platform==='wechat'?'微信':'抖音') + '发送'); return; }
+  setTimeout(() => {
+    const c = renderShareCanvas();
+    c.toBlob(async blob => {
+      const file = new File([blob], 'glitch-moment.png', {type:'image/png'});
+      if (navigator.canShare && navigator.canShare({files:[file]})) {
+        try { await navigator.share({files:[file], title:'我的丰容一刻'}); return; }
+        catch(e) {}
+      }
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download='glitch-moment.png';
+      document.body.appendChild(a); a.click();
+      setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+      shareShowToast('已保存到相册 · 打开' + (platform==='wechat'?'微信':'抖音') + '选图分享');
+    });
+  }, 80);
+}
+function shareShowToast(msg) {
+  const t = document.getElementById('shareToast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+const shareCap = document.createElement('input');
+shareCap.type = 'hidden'; shareCap.id = 'shareCaption';
+shareCap.value = 'Sow nothing, reap nothing.';
+document.body.appendChild(shareCap);
+loadSharePhotoFallback();
+</script>
+</body>
+</html>
