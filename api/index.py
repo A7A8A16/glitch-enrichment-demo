@@ -1,4 +1,5 @@
 """Vercel ASGI entry point for Glitch. backend/app.py content inlined for reliability."""
+from __future__ import annotations
 import os
 import sys
 from pathlib import Path
@@ -21,7 +22,6 @@ logger.setLevel(logging.INFO)
 # === backend/app.py 内容开始 ===
 """Glitch backend: two-step profile question and enrichment task generation."""
 
-from __future__ import annotations
 
 import json
 import math
