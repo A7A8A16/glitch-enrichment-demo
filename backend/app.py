@@ -103,6 +103,7 @@ class LocationContext(BaseModel):
     weather: str | None = None
     temperature: str | None = None
     wind: str | None = None
+    humidity: str | None = None
     available: bool = False
 
 
@@ -457,6 +458,7 @@ async def location_context(request: LocationContextRequest) -> LocationContext:
                 weather=lives.get("weather"),
                 temperature=lives.get("temperature"),
                 wind=(f"{lives.get('winddirection', '')}风 {lives.get('windpower', '')}级").strip(),
+                humidity=(f"{lives['humidity']}%" if lives.get("humidity") else None),
                 available=True,
             )
     except Exception:

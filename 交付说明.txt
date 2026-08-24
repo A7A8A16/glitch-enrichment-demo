@@ -50,7 +50,9 @@ LLM: DeepSeek（环境变量 DEEPSEEK_API_KEY，10 秒超时）
 
 六、已知边界
 ------------
-· 天气卡「湿度 / 空气质量」两行仍是静态——后端 LocationContext 模型
-  未返回这两个字段（高德 API 本身有 humidity，需后端补字段，前端已就绪可接）。
+· 天气卡「空气质量」行已删除（高德天气 API 不提供 AQI）；「湿度」已接通
+  高德 humidity 字段（LocationContext 新增 humidity，前后端均已支持）。
+· 首页问候语按本地时段切换（早/午/下午/晚/深夜）；用户 ID 为本地随机
+  生成（localStorage 持久）；个人简介可在"编辑资料"中修改。
 · iOS Safari 需在用户手势内触发传感器权限（已实现：授权页按钮点击时同步发起）。
 · 宠物游戏数据（丰容点/等级/已购道具）存 localStorage，清浏览器数据会重置。

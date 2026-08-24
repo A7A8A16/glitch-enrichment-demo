@@ -1035,7 +1035,7 @@ body::after {
       <span class="avatar">G</span>
     </div>
     <div class="home-greet rise d2">
-      <h2 class="hi font-display">晚上好呀</h2>
+      <h2 class="hi font-display" id="greetText">你好呀</h2>
       <p class="date" id="todayDate">— · —</p>
     </div>
 
@@ -1052,9 +1052,8 @@ body::after {
         <div class="weather-desc">阴天</div>
       </div>
       <div class="weather-meta">
-        <div class="row">湿度<b>65%</b></div>
-        <div class="row">东北风<b>4级</b></div>
-        <div class="row">空气质量<b>优</b></div>
+        <div class="row">湿度<b>—</b></div>
+        <div class="row">风况<b>—</b></div>
       </div>
     </div>
 
@@ -1100,7 +1099,7 @@ body::after {
     </div>
     <div class="profile-person rise d2">
       <button class="profile-avatar" onclick="openProfileEditor()" aria-label="修改头像"><span class="pet-sprite" id="profilePetSprite"></span><img id="profileCustomAvatar" alt="用户自定义头像"></button>
-      <div class="profile-info"><h2 class="font-display" id="profileName">晚安呀！</h2><div class="profile-id">ID：20240520</div><div class="profile-bio">在细碎的日常里，收集小小的美好。</div><button class="profile-edit-btn" onclick="openProfileEditor()">编辑资料</button></div>
+      <div class="profile-info"><h2 class="font-display" id="profileName">晚安呀！</h2><div class="profile-id" id="profileId">ID：····</div><div class="profile-bio" id="profileBio">在细碎的日常里，收集小小的美好。</div><button class="profile-edit-btn" onclick="openProfileEditor()">编辑资料</button></div>
     </div>
     <div class="card profile-stats rise d3">
       <div class="profile-stat"><b>12</b><span>连续丰容天数</span></div><div class="profile-stat"><b>36</b><span>完成体验</span></div><div class="profile-stat"><b id="ownedCount">0</b><span>收集道具</span></div><div class="profile-stat"><b>15</b><span>点亮地点</span></div>
@@ -1136,6 +1135,7 @@ body::after {
         <div class="avatar-actions"><button class="avatar-action primary" onclick="document.getElementById('avatarFile').click()">选择本地图片</button><button class="avatar-action" onclick="usePetAsAvatar()">使用宠物头像</button><input id="avatarFile" type="file" accept="image/*" hidden onchange="previewAvatarFile(this)"></div>
       </div>
       <label class="editor-field">用户名称<input id="profileNameInput" maxlength="12" placeholder="请输入名称"></label>
+      <label class="editor-field">个性签名<input id="profileBioInput" maxlength="30" placeholder="写一句介绍一下自己"></label>
       <button class="btn-ink editor-save" onclick="saveProfileChanges()">保存修改</button>
     </div>
   </div>
@@ -1144,7 +1144,7 @@ body::after {
   <section class="screen pet-screen" id="pet">
     <div class="pet-head rise d1">
       <span class="pet-head-spacer"></span>
-      <div class="pet-profile"><span class="pet-avatar"><img src="assets/sprout-pet.png" alt="嫩芽宠物头像"></span><div><div class="pet-name font-display">晚安呀</div><div class="pet-level"><span id="petLevelText">Lv.1</span> · 丰容点 <span class="currency-value">120</span></div><div class="pet-xp" aria-label="宠物经验进度"><span id="petXpBar"></span></div></div></div>
+      <div class="pet-profile"><span class="pet-avatar"><img src="assets/sprout-pet.png" alt="嫩芽宠物头像"></span><div><div class="pet-name font-display">嫩芽龙</div><div class="pet-level"><span id="petLevelText">Lv.1</span> · 丰容点 <span class="currency-value">120</span></div><div class="pet-xp" aria-label="宠物经验进度"><span id="petXpBar"></span></div></div></div>
       <button class="pet-change-btn" onclick="go('pet-change')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 7h11l-3-3M17 17H6l3 3M18 7l2 2-2 2M6 17l-2-2 2-2"/></svg>更换宠物</button>
     </div>
     <div class="pet-stage rise d2">
@@ -1154,7 +1154,7 @@ body::after {
         <button class="pet-rail-btn" onclick="go('pet-feed')"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 14c0 4 3 6 8 6s8-2 8-6H4Z"/><path d="M7 14c0-3 2-5 5-5s5 2 5 5M12 9V5M9 7l3 2 3-2"/></svg>投喂</button>
       </div>
       <div class="pet-talk show" id="petTalk">今天也要一起攒一点小开心呀。</div>
-      <img class="pet-main" id="petMain" src="assets/sprout-pet.png" alt="嫩芽小兽晚安呀">
+      <img class="pet-main" id="petMain" src="assets/sprout-pet.png" alt="当前宠物形象">
       <div class="pet-sprite pet-main-sprite is-hidden" id="selectedPetSprite" role="img" aria-label="当前选择的宠物形象"></div>
       <svg class="sparkle twinkle" style="top:80px;left:88px;color:var(--peach)" width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C12.6 8 14 10 22 12 14 14 12.6 16 12 22 11.4 16 10 14 2 12 10 10 11.4 8 12 2Z"/></svg>
     </div>
@@ -1199,12 +1199,12 @@ body::after {
   <!-- ============ 宠物动作 ============ -->
   <section class="screen pet-screen" id="pet-actions">
     <div class="pet-head rise d1"><button class="pet-back" onclick="go('pet')" aria-label="返回宠物页"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 5-7 7 7 7"/></svg></button><h2 class="font-display">动作</h2><div class="leaf-balance"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4C12 4 7 7 6 15c4-2 7-3 11-7-3.4 4.4-6.6 6.7-11 8-.2 1.7.1 3.3.7 4.5l2-.8c-.5-1-.7-2-.6-3C17 15.5 21 10.5 20 4Z"/></svg><span class="currency-label">丰容点</span><span class="currency-value">120</span></div></div>
-    <div class="action-stage rise d2"><img class="pet-main" id="actionPet" src="assets/sprout-pet.png" alt="正在做动作的嫩芽小兽"></div><div class="action-note" id="actionNote">点一个动作，和晚安呀打个招呼</div>
+    <div class="action-stage rise d2"><img class="pet-main" id="actionPet" src="assets/sprout-pet.png" alt="正在做动作的嫩芽小兽"></div><div class="action-note" id="actionNote">点一个动作，和嫩芽龙打个招呼</div>
     <div class="action-grid rise d3">
-      <button class="action-item" onclick="playAction(this,'action-wave','晚安呀挥了挥小爪子')"><div class="item-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 52c-4-9-4-20 1-28M41 52c4-9 4-20-1-28M24 28c-11 0-15-10-11-16 5 8 10 6 15 1M40 28c8-2 11-7 12-14"/><circle cx="32" cy="25" r="14"/><path d="M27 24h.1M37 24h.1M28 31c3 2 5 2 8 0"/></svg></div><div class="item-name">打招呼</div></button>
+      <button class="action-item" onclick="playAction(this,'action-wave',currentPetName()+'挥了挥小爪子')"><div class="item-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 52c-4-9-4-20 1-28M41 52c4-9 4-20-1-28M24 28c-11 0-15-10-11-16 5 8 10 6 15 1M40 28c8-2 11-7 12-14"/><circle cx="32" cy="25" r="14"/><path d="M27 24h.1M37 24h.1M28 31c3 2 5 2 8 0"/></svg></div><div class="item-name">打招呼</div></button>
       <button class="action-item" onclick="playAction(this,'action-hop','开心得蹦了两下')"><div class="item-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 46c7-5 25-5 32 0M24 20l8-8 8 8M32 12v27"/><path d="m20 33 12 8 12-8"/></svg></div><div class="item-name">开心跳</div></button>
       <button class="action-item" onclick="playAction(this,'action-wave','送给你一颗小心心')"><div class="item-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M32 50S12 39 12 24c0-10 13-13 20-3 7-10 20-7 20 3 0 15-20 26-20 26Z"/></svg></div><div class="item-name">比心</div></button>
-      <button class="action-item" onclick="playAction(this,'action-sleep','嘘，它开始做嫩芽梦了')"><div class="item-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 46h36M21 46c-5-13 3-25 17-25 9 0 15 7 15 16 0 3-1 6-3 9"/><path d="M26 31c2 2 4 2 6 0M38 31c2 2 4 2 6 0M44 14h8l-8 8h8"/></svg></div><div class="item-name">睡觉</div></button>
+      <button class="action-item" onclick="playAction(this,'action-sleep','嘘，'+currentPetName()+'开始做美梦了')"><div class="item-art"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 46h36M21 46c-5-13 3-25 17-25 9 0 15 7 15 16 0 3-1 6-3 9"/><path d="M26 31c2 2 4 2 6 0M38 31c2 2 4 2 6 0M44 14h8l-8 8h8"/></svg></div><div class="item-name">睡觉</div></button>
     </div>
   </section>
 
@@ -1528,12 +1528,15 @@ function runSense() {
   }
 })();
 
-/* ============ 日期 ============ */
+/* ============ 日期 + 时段问候 ============ */
 (function setDate() {
   const d = new Date();
   const wd = ['日','一','二','三','四','五','六'][d.getDay()];
   document.getElementById('todayDate').textContent =
     `${d.getMonth()+1} 月 ${d.getDate()} 日 · 星期${wd}`;
+  const h = d.getHours();
+  const greet = h < 5 ? '夜深啦' : h < 11 ? '早上好呀' : h < 14 ? '中午好呀' : h < 18 ? '下午好呀' : h < 23 ? '晚上好呀' : '夜深啦';
+  document.getElementById('greetText').textContent = greet;
 })();
 
 /* ============ 心情（已从首页移除，保留以备回滚） ============ */
@@ -1584,6 +1587,7 @@ const PET_FAMILIES = [
   { name:'橘子豚', forms:['坐坐','躺平','抱橘','泡澡','小鸟伴','橘子梦'] }
 ];
 const PET_FILES = ['sprout','cloud','capy'];
+function currentPetName() { return PET_FAMILIES[selectedPet.family].name; }
 const PET_MAIN_SCALE = [
   [96,96,94,94,94,92],
   [94,94,92,92,90,88],
@@ -1603,11 +1607,18 @@ let gameState = (() => {
   } catch (_) { return fallback; }
 })();
 function saveGame() { localStorage.setItem('glitch-pet-game', JSON.stringify(gameState)); }
+const DEFAULT_BIO = '在细碎的日常里，收集小小的美好。';
 let userProfile = (() => {
-  try { return JSON.parse(localStorage.getItem('glitch-user-profile')) || {name:'晚安呀！',avatar:null}; }
-  catch (_) { return {name:'晚安呀！',avatar:null}; }
+  try { return {bio:DEFAULT_BIO, ...(JSON.parse(localStorage.getItem('glitch-user-profile')) || {name:'晚安呀！',avatar:null})}; }
+  catch (_) { return {name:'晚安呀！',avatar:null,bio:DEFAULT_BIO}; }
 })();
 let pendingAvatar = userProfile.avatar;
+/* 本地随机 ID：首次打开生成 8 位数字，存 localStorage */
+const userId = (() => {
+  let id = localStorage.getItem('glitch-user-id');
+  if (!id) { id = String(Math.floor(10000000 + Math.random() * 90000000)); localStorage.setItem('glitch-user-id', id); }
+  return id;
+})();
 
 function setSpritePosition(el, family, form, useGrowth=false) {
   const petState = gameState.pets[family] || {level:1,xp:0};
@@ -1658,6 +1669,8 @@ function applySelectedPet() {
   setSpritePosition(document.getElementById('profilePetSprite'), family, form, true);
   setSpritePosition(document.getElementById('editorPetSprite'), family, form, true);
   document.querySelector('.pet-name').textContent = PET_FAMILIES[family].name;
+  const actionNote = document.getElementById('actionNote');
+  if (actionNote) actionNote.textContent = `点一个动作，和${PET_FAMILIES[family].name}打个招呼`;
   updateEconomyUI();
   applyUserProfile();
 }
@@ -1722,6 +1735,8 @@ function goExtraEnrichment() {
 }
 function applyUserProfile() {
   document.getElementById('profileName').textContent = userProfile.name;
+  document.getElementById('profileId').textContent = 'ID：' + userId;
+  document.getElementById('profileBio').textContent = userProfile.bio || DEFAULT_BIO;
   const custom = document.getElementById('profileCustomAvatar');
   const petAvatar = document.getElementById('profilePetSprite');
   if (userProfile.avatar) {
@@ -1750,6 +1765,7 @@ function renderEditorAvatar() {
 function openProfileEditor() {
   pendingAvatar = userProfile.avatar;
   document.getElementById('profileNameInput').value = userProfile.name;
+  document.getElementById('profileBioInput').value = userProfile.bio || '';
   document.getElementById('avatarFile').value = '';
   renderEditorAvatar();
   document.getElementById('profileEditor').classList.add('show');
@@ -1784,7 +1800,8 @@ function previewAvatarFile(input) {
 function saveProfileChanges() {
   const name = document.getElementById('profileNameInput').value.trim();
   if (!name) { petToast('用户名称不能为空'); return; }
-  userProfile = {name:name.slice(0,12), avatar:pendingAvatar};
+  const bio = document.getElementById('profileBioInput').value.trim();
+  userProfile = {name:name.slice(0,12), avatar:pendingAvatar, bio:(bio || DEFAULT_BIO).slice(0,30)};
   localStorage.setItem('glitch-user-profile', JSON.stringify(userProfile));
   applyUserProfile();
   closeProfileEditor();
@@ -2334,10 +2351,9 @@ function applyLiveContext() {
     const desc = document.querySelector('#home .weather-desc');
     if (desc) desc.textContent = liveContext.weather;
   }
-  if (liveContext.wind) {
-    const rows = document.querySelectorAll('#home .weather-meta .row b');
-    if (rows[1]) rows[1].textContent = liveContext.wind;
-  }
+  const rows = document.querySelectorAll('#home .weather-meta .row b');
+  if (liveContext.humidity && rows[0]) rows[0].textContent = liveContext.humidity;
+  if (liveContext.wind && rows[1]) rows[1].textContent = liveContext.wind;
   const card = document.querySelector('#home .weather-card');
   if (card) card.title = `高德实时天气：${liveContext.city || ''} ${liveContext.weather || ''} ${liveContext.temperature || ''}° ${liveContext.wind || ''}`;
   /* 若分享页已打开，同步更新 meta（location/weather） */
